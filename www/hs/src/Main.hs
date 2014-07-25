@@ -3,18 +3,21 @@ module Main (main) where
 
 import GHCJS.Types
 import GHCJS.Foreign
+import Control.Concurrent (threadDelay)
+
+foreign import javascript unsafe
+  "window.isDeviceReady"
+  isDeviceReady :: IO Bool
 
 main :: IO ()
-main = bindEvents
+main = do
+  waitDeviceReady
+  onDeviceReady
 
-foreign import javascript safe
-  "document.addEventListener($1, $2, false);"
-  addEventListener :: JSString -> JSFun (IO ()) -> IO ()
-
-bindEvents :: IO ()
-bindEvents = do
-  fn <- asyncCallback AlwaysRetain onDeviceReady
-  addEventListener "deviceready" fn
+waitDeviceReady :: IO ()
+waitDeviceReady = do
+  b <- isDeviceReady
+  if b then return () else threadDelay 1000 >> waitDeviceReady
 
 onDeviceReady :: IO ()
 onDeviceReady = do
