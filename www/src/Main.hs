@@ -5,12 +5,10 @@ import GHCJS.Types
 import GHCJS.Foreign
 
 main :: IO ()
-main = do
-  onDeviceReady
+main = onDeviceReady
 
 onDeviceReady :: IO ()
-onDeviceReady = do
-  receivedEvent "deviceready"
+onDeviceReady = receivedEvent "deviceready"
 
 data Element_
 type Element = JSRef Element_
