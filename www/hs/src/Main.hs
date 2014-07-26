@@ -3,21 +3,10 @@ module Main (main) where
 
 import GHCJS.Types
 import GHCJS.Foreign
-import Control.Concurrent (threadDelay)
-
-foreign import javascript unsafe
-  "window.isDeviceReady"
-  isDeviceReady :: IO Bool
 
 main :: IO ()
 main = do
-  waitDeviceReady
   onDeviceReady
-
-waitDeviceReady :: IO ()
-waitDeviceReady = do
-  b <- isDeviceReady
-  if b then return () else threadDelay 1000 >> waitDeviceReady
 
 onDeviceReady :: IO ()
 onDeviceReady = do
