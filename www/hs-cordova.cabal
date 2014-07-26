@@ -1,13 +1,11 @@
-name:                 hs-cordova-test
+name:                 hs-cordova
 version:              0.1
-author:               Michael Tolly
-maintainer:           miketolly@gmail.com
 category:             Web
 build-type:           Simple
 -- extra-source-files:
 cabal-version:        >= 1.10
 
-executable hs-cordova-test
+executable hs-cordova
   hs-source-dirs:       src
   main-is:              Main.hs
   -- other-modules:
