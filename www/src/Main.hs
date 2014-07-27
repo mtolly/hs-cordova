@@ -18,21 +18,21 @@ foreign import javascript unsafe
   getElementById :: JSString -> IO Element
 
 foreign import javascript unsafe
-  "$1.querySelector($2)"
-  querySelector :: Element -> JSString -> IO Element
+  "$2.querySelector($1)"
+  querySelector :: JSString -> Element -> IO Element
 
 foreign import javascript unsafe
-  "$1.setAttribute($2, $3);"
-  setAttribute :: Element -> JSString -> JSString -> IO ()
+  "$3.setAttribute($1, $2);"
+  setAttribute :: JSString -> JSString -> Element -> IO ()
 
 receivedEvent :: JSString -> IO ()
 receivedEvent evt = do
 
   parentElement <- getElementById evt
-  listeningElement <- querySelector parentElement ".listening"
-  receivedElement <- querySelector parentElement ".received"
+  listeningElement <- querySelector ".listening" parentElement
+  receivedElement <- querySelector ".received" parentElement
 
-  setAttribute listeningElement "style" "display: none;"
-  setAttribute receivedElement "style" "display: block;"
+  setAttribute "style" "display: none;" listeningElement
+  setAttribute "style" "display: block;" receivedElement
 
   putStrLn $ "Received Event: " ++ fromJSString evt
