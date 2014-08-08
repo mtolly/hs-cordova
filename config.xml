@@ -7,6 +7,6 @@
     <author email="dev@cordova.apache.org" href="http://cordova.io">
         Apache Cordova Team
     </author>
-    <content src="dist/build/hs-cordova-test/hs-cordova-test.jsexe/index.html" />
+    <content src="dist/build/hs-cordova/hs-cordova.jsexe/index.html" />
     <access origin="*" />
 </widget>
