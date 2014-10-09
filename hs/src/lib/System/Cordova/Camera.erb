@@ -1,0 +1,83 @@
+{-# LANGUAGE JavaScriptFFI #-}
+module System.Cordova.Camera where
+
+import GHCJS.Types
+import GHCJS.Foreign
+import GHCJS.Marshal
+import System.Cordova.Internal
+import System.Cordova.Base
+
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/records.rb')
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/enums.rb')
+%>
+
+<%= makeRecord('CameraOptions', [
+  Field.new('Int', 'quality'),
+  Field.new('DestinationType', 'destinationType'),
+  Field.new('SourceType', 'sourceType'),
+  Field.new('Bool', 'allowEdit'),
+  Field.new('EncodingType', 'encodingType'),
+  Field.new('Int', 'targetWidth'),
+  Field.new('Int', 'targetHeight'),
+  Field.new('MediaType', 'mediaType'),
+  Field.new('Bool', 'correctOrientation'),
+  Field.new('Bool', 'saveToPhotoAlbum'),
+  Field.new('PopoverOptions', 'popoverOptions'),
+  Field.new('Direction', 'cameraDirection'),
+]) %>
+
+<%= makeEnum('DestinationType', %w{
+  DataURL
+  FileURI
+  NativeURI
+}, 'Camera.DestinationType.') %>
+
+<%= makeEnum('SourceType', %w{
+  PhotoLibrary
+  Camera
+  SavedPhotoAlbum
+}, 'Camera.PictureSourceType.') %>
+
+<%= makeEnum('EncodingType', %w{
+  JPEG
+  PNG
+}, 'Camera.EncodingType.') %>
+
+<%= makeEnum('MediaType', %w{
+  Picture
+  Video
+  AllMedia
+}, 'Camera.MediaType.') %>
+
+<%= makeRecord('PopoverOptions', [
+  Field.new('Int', 'popX', 'x'),
+  Field.new('Int', 'popY', 'y'),
+  Field.new('Int', 'popWidth', 'width'),
+  Field.new('Int', 'popHeight', 'height'),
+  Field.new('Int', 'arrowDir', 'PopoverArrowDirection'),
+]) %>
+
+<%= makeEnum('PopoverArrowDirection', [
+  Tag.new('ArrowUp', 'ARROW_UP'),
+  Tag.new('ArrowDown', 'ARROW_DOWN'),
+  Tag.new('ArrowLeft', 'ARROW_LEFT'),
+  Tag.new('ArrowRight', 'ARROW_RIGHT'),
+  Tag.new('ArrowAny', 'ARROW_ANY'),
+], 'Camera.PopoverArrowDirection.') %>
+
+<%= makeEnum('Direction', %w{
+  Back
+  Front
+}, 'Camera.Direction.') %>
+
+foreign import javascript interruptible
+  "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
+  js_getPicture :: JSRef CameraOptions -> IO (JSEither JSString JSString)
+
+getPicture :: CameraOptions -> IO (Either String String)
+getPicture opts = do
+  eitherJJ <- toJSRef opts >>= js_getPicture >>= fromJSEither
+  return $ case eitherJJ of
+    Left err -> Left $ fromJSString err
+    Right x -> Right $ fromJSString x
