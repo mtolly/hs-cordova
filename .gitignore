@@ -10,4 +10,5 @@ platforms/
 plugins/
 
 # GHCJS build files
-dist/
+hs/dist/
+www/js/
