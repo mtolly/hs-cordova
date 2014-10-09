@@ -21,4 +21,4 @@ library
   default-language:     Haskell2010
   ghc-options:          -Wall
   js-sources:
-    js/ondeviceready.js
+    js/hs_util.js

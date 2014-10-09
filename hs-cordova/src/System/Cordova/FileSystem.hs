@@ -18,7 +18,7 @@ foreign import javascript unsafe
   persistent :: Storage
 
 foreign import javascript interruptible
-  "window.requestFileSystem($1, $2, function(fs) { $c([0, fs]); }, function(err) { $c([1, err]); });"
+  "window.requestFileSystem($1, $2, hs_good($c), hs_error($c));"
   js_requestFileSystem :: Storage -> Int -> IO (JSEither FileError FileSystem)
 
 data FileSystem_
@@ -38,7 +38,7 @@ foreign import javascript unsafe
   root :: FileSystem -> DirectoryEntry
 
 foreign import javascript interruptible
-  "$1.getFile($2, $3, function(fs) { $c([0, fs]); }, function(err) { $c([1, err]); });"
+  "$1.getFile($2, $3, hs_good($c), hs_error($c));"
   js_getFile :: DirectoryEntry -> JSString -> JSObject a -> IO (JSEither FileError FileEntry)
 
 data GetFileOpts
@@ -72,7 +72,7 @@ data DirectoryReader_
 type DirectoryReader = JSRef DirectoryReader_
 
 foreign import javascript interruptible
-  "$1.readEntries(function(fs) { $c([0, fs]); }, function(err) { $c([1, err]); });"
+  "$1.readEntries(hs_good($c), hs_error($c));"
   js_readEntries :: DirectoryReader -> IO (JSEither FileError (JSArray FileEntry_))
 
 readEntries :: DirectoryReader -> IO (Either FileError (JSArray FileEntry_))
