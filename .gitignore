@@ -22,3 +22,5 @@ plugins/
 **/dist/setup-config
 **/dist/build/autogen/
 **/dist/build/*/*-tmp/
+*.js_hi
+*.js_o
