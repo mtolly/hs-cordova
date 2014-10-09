@@ -120,3 +120,12 @@ getPicture opts = do
   return $ case eitherJJ of
     Left err -> Left $ fromJSString err
     Right x -> Right $ fromJSString x
+
+foreign import javascript interruptible
+  "navigator.camera.cleanup(hs_good($c), hs_error($c));"
+  js_cleanup :: IO (JSEither JSString (JSRef ()))
+
+cleanup :: IO (Maybe String)
+cleanup = js_cleanup >>= fromJSEither >>= \x -> return $ case x of
+  Left err -> Just $ fromJSString err
+  Right _  -> Nothing
