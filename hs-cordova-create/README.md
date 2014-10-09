@@ -7,7 +7,7 @@ Things to note:
 
   * A hook is provided so running `cordova build` or `cordova run` automatically configures & builds the Haskell project.
 
-  * You can't perform `document.addEventListener('deviceready', ...)` from the Haskell code,
-    so instead, `index.html` does it, and the listener simply starts execution of Haskell's `main`.
+  * You can't perform `document.addEventListener('deviceready', ...)` directly from the Haskell code,
+    so the `hs-cordova` library includes extra JS code which installs the listener.
     The reason for this is because the GHCJS runtime executes the Haskell main function "in the background",
-    so you can't rely on anything being done before the DOM/Cordova/anything is done loading.
+    so you can't rely on anything being done before the DOM/Cordova is done loading.
