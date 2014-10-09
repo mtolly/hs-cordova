@@ -4,8 +4,12 @@ module Main (main) where
 import GHCJS.Types
 import GHCJS.Foreign
 
+import System.Cordova.Base
+
 main :: IO ()
-main = onDeviceReady
+main = do
+  waitDeviceReady
+  onDeviceReady
 
 onDeviceReady :: IO ()
 onDeviceReady = receivedEvent "deviceready"
