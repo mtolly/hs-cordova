@@ -2,7 +2,9 @@
 set -u
 set -e
 
-cd www
+cd hs
+cabal clean
 cabal configure --ghcjs
 cabal build
-rm -f dist/build/*/*.jsexe/all.js
+mkdir -p ../www/js
+cp dist/build/*/*.jsexe/{lib,rts,lib1,out}.js ../www/js/

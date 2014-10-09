@@ -10,17 +10,4 @@ platforms/
 plugins/
 
 # GHCJS build files
-**/dist/build/*/*.jsexe/lib.js
-**/dist/build/*/*.jsexe/lib.js.files
-**/dist/build/*/*.jsexe/lib1.js
-**/dist/build/*/*.jsexe/lib1.js.files
-**/dist/build/*/*.jsexe/out.js
-**/dist/build/*/*.jsexe/out.js.files
-**/dist/build/*/*.jsexe/out.stats
-**/dist/build/*/*.jsexe/rts.js
-**/dist/package.conf.inplace
-**/dist/setup-config
-**/dist/build/autogen/
-**/dist/build/*/*-tmp/
-*.js_hi
-*.js_o
+dist/
