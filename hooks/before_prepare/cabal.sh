@@ -3,6 +3,7 @@ set -u
 set -e
 
 cd hs
+make
 cabal clean
 cabal configure --ghcjs
 cabal build
