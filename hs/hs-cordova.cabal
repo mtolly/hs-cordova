@@ -8,9 +8,10 @@ cabal-version:        >= 1.10
 
 library
   exposed-modules:
+    System.Cordova.Base
     System.Cordova.FileSystem
     System.Cordova.Camera
-    System.Cordova.Base
+    System.Cordova.Device
   other-modules:
     System.Cordova.Internal
   build-depends:
