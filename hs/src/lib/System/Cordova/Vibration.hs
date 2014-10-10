@@ -1,4 +1,4 @@
-module System.Cordova.Vibrate
+module System.Cordova.Vibration
 ( vibrate
 , vibrateFor
 , vibratePattern

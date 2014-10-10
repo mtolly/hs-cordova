@@ -12,7 +12,7 @@ library
     System.Cordova.FileSystem
     System.Cordova.Camera
     System.Cordova.Device
-    System.Cordova.Vibrate
+    System.Cordova.Vibration
   other-modules:
     System.Cordova.Internal
   build-depends:

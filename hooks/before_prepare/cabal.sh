@@ -3,8 +3,8 @@ set -u
 set -e
 
 cd hs
-make
-cabal clean
+# make
+# cabal clean
 cabal configure --ghcjs
 cabal build
 mkdir -p ../www/js
