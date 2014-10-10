@@ -8,29 +8,22 @@ class Field
 end
 
 def makeRecord(name, fields)
-  out = ''
-  class << out
-    def line(ln)
-      self << ln << "\n"
-    end
-  end
+  lines = []
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: Maybe #{field.type}"
   end
-  out.line "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
+  lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
   defaultExprs = [name] + Array.new(fields.length, 'Nothing')
-  out.line "instance Default #{name} where defaultValue = #{defaultExprs.join(' ')}"
-  out << """
-instance ToJSRef #{name} where
-  toJSRef opts = do
-    obj <- newObj
-    let setJust s f = case f opts of
-          Nothing -> return ()
-          Just x -> toJSRef x >>= \\ref -> setProp s ref obj
-"""
+  lines << "instance Default #{name} where defaultValue = #{defaultExprs.join(' ')}"
+  lines << "instance ToJSRef #{name} where"
+  lines << "  toJSRef opts = do"
+  lines << "    obj <- newObj"
+  lines << "    let setJust s f = case f opts of"
+  lines << "          Nothing -> return ()"
+  lines << "          Just x -> toJSRef x >>= \\ref -> setProp s ref obj"
   fields.each do |field|
-    out.line "    setJust #{field.nameJs.inspect} #{field.nameHs}"
+    lines << "    setJust #{field.nameJs.inspect} #{field.nameHs}"
   end
-  out.line "    return obj"
-  out
+  lines << "    return obj"
+  lines.join("\n")
 end

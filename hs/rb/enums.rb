@@ -13,24 +13,19 @@ class Tag
 end
 
 def makeEnum(name, tags, exprPrefix = '')
-  out = ''
+  lines = []
   tags = tags.map do |t|
     t.is_a?(String) ? Tag.new(t) : t
   end
-  class << out
-    def line(ln)
-      self << ln << "\n"
-    end
-  end
-  out.line "data #{name} = #{tags.map(&:nameHs).join(' | ')} deriving (Eq, Ord, Show, Read, Enum, Bounded)"
+  lines << "data #{name} = #{tags.map(&:nameHs).join(' | ')} deriving (Eq, Ord, Show, Read, Enum, Bounded)"
   tags.each do |tag|
     importName = "_#{name}_#{tag.nameHs}"
-    out.line "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: JSRef #{name}"
+    lines << "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: JSRef #{name}"
   end
-  out.line "instance ToJSRef #{name} where"
+  lines << "instance ToJSRef #{name} where"
   tags.each do |tag|
     importName = "_#{name}_#{tag.nameHs}"
-    out.line "  toJSRef #{tag.nameHs} = return #{importName}"
+    lines << "  toJSRef #{tag.nameHs} = return #{importName}"
   end
-  out
+  lines.join("\n")
 end
