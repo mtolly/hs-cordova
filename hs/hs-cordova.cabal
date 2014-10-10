@@ -13,6 +13,7 @@ library
     System.Cordova.Camera
     System.Cordova.Device
     System.Cordova.Vibration
+    System.Cordova.NetworkInformation
   other-modules:
     System.Cordova.Internal
   build-depends:

@@ -38,11 +38,11 @@ require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/enums.rb')
   Field.new('Direction', 'cameraDirection'),
 ]) %>
 
-<%= makeEnum('DestinationType', %w{
-  DataURL
-  FileURI
-  NativeURI
-}, 'Camera.DestinationType.') %>
+<%= makeEnum('DestinationType', [
+  Tag.new('DataURL', 'DATA_URL'),
+  Tag.new('FileURI', 'FILE_URI'),
+  Tag.new('NativeURI', 'NATIVE_URI'),
+], 'Camera.DestinationType.') %>
 
 <%= makeEnum('SourceType', %w{
   PhotoLibrary

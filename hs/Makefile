@@ -3,5 +3,5 @@ out_files := $(erb_files:%.erb=%)
 
 all: $(out_files)
 
-%: %.erb
+%: %.erb rb/*.rb
 	erb $< > $@

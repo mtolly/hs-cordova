@@ -50,6 +50,8 @@ instance ToJSRef DestinationType where
   toJSRef DataURL = return _DestinationType_DataURL
   toJSRef FileURI = return _DestinationType_FileURI
   toJSRef NativeURI = return _DestinationType_NativeURI
+instance FromJSRef DestinationType where
+  fromJSRef = js_fromEnum
 
 data SourceType = PhotoLibrary | Camera | SavedPhotoAlbum deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.PictureSourceType.PHOTOLIBRARY" _SourceType_PhotoLibrary :: JSRef SourceType
@@ -59,6 +61,8 @@ instance ToJSRef SourceType where
   toJSRef PhotoLibrary = return _SourceType_PhotoLibrary
   toJSRef Camera = return _SourceType_Camera
   toJSRef SavedPhotoAlbum = return _SourceType_SavedPhotoAlbum
+instance FromJSRef SourceType where
+  fromJSRef = js_fromEnum
 
 data EncodingType = JPEG | PNG deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.EncodingType.JPEG" _EncodingType_JPEG :: JSRef EncodingType
@@ -66,6 +70,8 @@ foreign import javascript unsafe "Camera.EncodingType.PNG" _EncodingType_PNG :: 
 instance ToJSRef EncodingType where
   toJSRef JPEG = return _EncodingType_JPEG
   toJSRef PNG = return _EncodingType_PNG
+instance FromJSRef EncodingType where
+  fromJSRef = js_fromEnum
 
 data MediaType = Picture | Video | AllMedia deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.MediaType.PICTURE" _MediaType_Picture :: JSRef MediaType
@@ -75,6 +81,8 @@ instance ToJSRef MediaType where
   toJSRef Picture = return _MediaType_Picture
   toJSRef Video = return _MediaType_Video
   toJSRef AllMedia = return _MediaType_AllMedia
+instance FromJSRef MediaType where
+  fromJSRef = js_fromEnum
 
 data PopoverOptions = PopoverOptions { popX :: Maybe Int, popY :: Maybe Int, popWidth :: Maybe Int, popHeight :: Maybe Int, arrowDir :: Maybe Int } deriving (Eq, Ord, Show, Read)
 instance Default PopoverOptions where defaultValue = PopoverOptions Nothing Nothing Nothing Nothing Nothing
@@ -103,6 +111,8 @@ instance ToJSRef PopoverArrowDirection where
   toJSRef ArrowLeft = return _PopoverArrowDirection_ArrowLeft
   toJSRef ArrowRight = return _PopoverArrowDirection_ArrowRight
   toJSRef ArrowAny = return _PopoverArrowDirection_ArrowAny
+instance FromJSRef PopoverArrowDirection where
+  fromJSRef = js_fromEnum
 
 data Direction = Back | Front deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.Direction.BACK" _Direction_Back :: JSRef Direction
@@ -110,6 +120,8 @@ foreign import javascript unsafe "Camera.Direction.FRONT" _Direction_Front :: JS
 instance ToJSRef Direction where
   toJSRef Back = return _Direction_Back
   toJSRef Front = return _Direction_Front
+instance FromJSRef Direction where
+  fromJSRef = js_fromEnum
 
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"

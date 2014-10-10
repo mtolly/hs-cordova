@@ -1,11 +1,5 @@
-def cordovaEnum(str)
-  str.gsub(/([a-z])([A-Z])([A-Z]|$)/) do |md|
-    $1 + '_' + $2 + $3
-  end.upcase
-end
-
 class Tag
-  def initialize(nameHs, exprJs = cordovaEnum(nameHs))
+  def initialize(nameHs, exprJs = nameHs.upcase)
     @nameHs = nameHs
     @exprJs = exprJs
   end
@@ -27,5 +21,7 @@ def makeEnum(name, tags, exprPrefix = '')
     importName = "_#{name}_#{tag.nameHs}"
     lines << "  toJSRef #{tag.nameHs} = return #{importName}"
   end
+  lines << "instance FromJSRef #{name} where"
+  lines << "  fromJSRef = js_fromEnum"
   lines.join("\n")
 end
