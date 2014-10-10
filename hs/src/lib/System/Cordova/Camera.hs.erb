@@ -1,5 +1,16 @@
 {-# LANGUAGE JavaScriptFFI #-}
-module System.Cordova.Camera where
+module System.Cordova.Camera
+( CameraOptions(..)
+, DestinationType(..)
+, SourceType(..)
+, EncodingType(..)
+, MediaType(..)
+, PopoverOptions(..)
+, PopoverArrowDirection(..)
+, Direction(..)
+, getPicture
+, cleanup
+) where
 
 import GHCJS.Types
 import GHCJS.Foreign
