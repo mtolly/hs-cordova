@@ -16,12 +16,12 @@ import GHCJS.Types
 import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
-import System.Cordova.Base
+import Data.Default
 
 
 
 data CameraOptions = CameraOptions { quality :: Maybe Int, destinationType :: Maybe DestinationType, sourceType :: Maybe SourceType, allowEdit :: Maybe Bool, encodingType :: Maybe EncodingType, targetWidth :: Maybe Int, targetHeight :: Maybe Int, mediaType :: Maybe MediaType, correctOrientation :: Maybe Bool, saveToPhotoAlbum :: Maybe Bool, popoverOptions :: Maybe PopoverOptions, cameraDirection :: Maybe Direction } deriving (Eq, Ord, Show, Read)
-instance Default CameraOptions where defaultValue = CameraOptions Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+instance Default CameraOptions where def = CameraOptions def def def def def def def def def def def def
 instance ToJSRef CameraOptions where
   toJSRef opts = do
     obj <- newObj
@@ -85,7 +85,7 @@ instance FromJSRef MediaType where
   fromJSRef = js_fromEnum
 
 data PopoverOptions = PopoverOptions { popX :: Maybe Int, popY :: Maybe Int, popWidth :: Maybe Int, popHeight :: Maybe Int, arrowDir :: Maybe Int } deriving (Eq, Ord, Show, Read)
-instance Default PopoverOptions where defaultValue = PopoverOptions Nothing Nothing Nothing Nothing Nothing
+instance Default PopoverOptions where def = PopoverOptions def def def def def
 instance ToJSRef PopoverOptions where
   toJSRef opts = do
     obj <- newObj

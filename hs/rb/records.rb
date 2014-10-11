@@ -13,8 +13,8 @@ def makeRecord(name, fields)
     "#{field.nameHs} :: Maybe #{field.type}"
   end
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
-  defaultExprs = [name] + Array.new(fields.length, 'Nothing')
-  lines << "instance Default #{name} where defaultValue = #{defaultExprs.join(' ')}"
+  defaultExprs = [name] + Array.new(fields.length, 'def')
+  lines << "instance Default #{name} where def = #{defaultExprs.join(' ')}"
   lines << "instance ToJSRef #{name} where"
   lines << "  toJSRef opts = do"
   lines << "    obj <- newObj"
