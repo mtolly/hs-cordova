@@ -10,7 +10,7 @@ end
 def makeRecord(name, fields)
   lines = []
   fieldDefs = fields.map do |field|
-    "#{field.nameHs} :: Maybe #{field.type}"
+    "#{field.nameHs} :: #{field.type}"
   end
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
   defaultExprs = [name] + Array.new(fields.length, 'def')
@@ -25,5 +25,14 @@ def makeRecord(name, fields)
     lines << "    setJust #{field.nameJs.inspect} #{field.nameHs}"
   end
   lines << "    return obj"
+  lines << "instance FromJSRef #{name} where"
+  lines << "  fromJSRef obj = do"
+  bound = []
+  fields.each_with_index do |field, i|
+    thisBound = "_x#{i}"
+    bound << thisBound
+    lines << "    #{thisBound} <- fromProp #{field.nameJs.inspect} obj"
+  end
+  lines << "    return $ #{name} <$> #{bound.join(' <*> ')}"
   lines.join("\n")
 end

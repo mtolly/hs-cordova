@@ -12,6 +12,7 @@ strings.each do |str|
   lines << "foreign import javascript unsafe \"device.#{str}\" js_#{str} :: JSString"
   lines << "#{str} :: String"
   lines << "#{str} = fromJSString js_#{str}"
+  lines << ''
 end
 lines.join("\n")
 %>

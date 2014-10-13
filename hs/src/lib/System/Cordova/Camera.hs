@@ -17,6 +17,7 @@ import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
 import Data.Default
+import Control.Applicative
 
 
 
@@ -41,6 +42,21 @@ instance ToJSRef CameraOptions where
     setJust "popoverOptions" popoverOptions
     setJust "cameraDirection" cameraDirection
     return obj
+instance FromJSRef CameraOptions where
+  fromJSRef obj = do
+    _x0 <- fromProp "quality" obj
+    _x1 <- fromProp "destinationType" obj
+    _x2 <- fromProp "sourceType" obj
+    _x3 <- fromProp "allowEdit" obj
+    _x4 <- fromProp "encodingType" obj
+    _x5 <- fromProp "targetWidth" obj
+    _x6 <- fromProp "targetHeight" obj
+    _x7 <- fromProp "mediaType" obj
+    _x8 <- fromProp "correctOrientation" obj
+    _x9 <- fromProp "saveToPhotoAlbum" obj
+    _x10 <- fromProp "popoverOptions" obj
+    _x11 <- fromProp "cameraDirection" obj
+    return $ CameraOptions <$> _x0 <*> _x1 <*> _x2 <*> _x3 <*> _x4 <*> _x5 <*> _x6 <*> _x7 <*> _x8 <*> _x9 <*> _x10 <*> _x11
 
 data DestinationType = DataURL | FileURI | NativeURI deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.DestinationType.DATA_URL" _DestinationType_DataURL :: JSRef DestinationType
@@ -98,6 +114,14 @@ instance ToJSRef PopoverOptions where
     setJust "height" popHeight
     setJust "PopoverArrowDirection" arrowDir
     return obj
+instance FromJSRef PopoverOptions where
+  fromJSRef obj = do
+    _x0 <- fromProp "x" obj
+    _x1 <- fromProp "y" obj
+    _x2 <- fromProp "width" obj
+    _x3 <- fromProp "height" obj
+    _x4 <- fromProp "PopoverArrowDirection" obj
+    return $ PopoverOptions <$> _x0 <*> _x1 <*> _x2 <*> _x3 <*> _x4
 
 data PopoverArrowDirection = ArrowUp | ArrowDown | ArrowLeft | ArrowRight | ArrowAny deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.PopoverArrowDirection.ARROW_UP" _PopoverArrowDirection_ArrowUp :: JSRef PopoverArrowDirection
