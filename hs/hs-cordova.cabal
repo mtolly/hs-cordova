@@ -14,6 +14,7 @@ library
     System.Cordova.Device
     System.Cordova.Vibration
     System.Cordova.NetworkInformation
+    System.Cordova.Marshal
   other-modules:
     System.Cordova.Internal
   build-depends:
