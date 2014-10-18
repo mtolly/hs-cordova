@@ -26,21 +26,22 @@ instance Default CameraOptions where def = CameraOptions def def def def def def
 instance ToJSRef CameraOptions where
   toJSRef opts = do
     obj <- newObj
-    let setJust s f = case f opts of
+    let _setJust s f = case f opts of
           Nothing -> return ()
           Just x -> toJSRef x >>= \ref -> setProp s ref obj
-    setJust "quality" quality
-    setJust "destinationType" destinationType
-    setJust "sourceType" sourceType
-    setJust "allowEdit" allowEdit
-    setJust "encodingType" encodingType
-    setJust "targetWidth" targetWidth
-    setJust "targetHeight" targetHeight
-    setJust "mediaType" mediaType
-    setJust "correctOrientation" correctOrientation
-    setJust "saveToPhotoAlbum" saveToPhotoAlbum
-    setJust "popoverOptions" popoverOptions
-    setJust "cameraDirection" cameraDirection
+        _set s f = toJSRef (f opts) >>= \ref -> setProp s ref obj
+    _setJust "quality" quality
+    _setJust "destinationType" destinationType
+    _setJust "sourceType" sourceType
+    _setJust "allowEdit" allowEdit
+    _setJust "encodingType" encodingType
+    _setJust "targetWidth" targetWidth
+    _setJust "targetHeight" targetHeight
+    _setJust "mediaType" mediaType
+    _setJust "correctOrientation" correctOrientation
+    _setJust "saveToPhotoAlbum" saveToPhotoAlbum
+    _setJust "popoverOptions" popoverOptions
+    _setJust "cameraDirection" cameraDirection
     return obj
 instance FromJSRef CameraOptions where
   fromJSRef obj = do
@@ -105,14 +106,15 @@ instance Default PopoverOptions where def = PopoverOptions def def def def def
 instance ToJSRef PopoverOptions where
   toJSRef opts = do
     obj <- newObj
-    let setJust s f = case f opts of
+    let _setJust s f = case f opts of
           Nothing -> return ()
           Just x -> toJSRef x >>= \ref -> setProp s ref obj
-    setJust "x" popX
-    setJust "y" popY
-    setJust "width" popWidth
-    setJust "height" popHeight
-    setJust "PopoverArrowDirection" arrowDir
+        _set s f = toJSRef (f opts) >>= \ref -> setProp s ref obj
+    _setJust "x" popX
+    _setJust "y" popY
+    _setJust "width" popWidth
+    _setJust "height" popHeight
+    _setJust "PopoverArrowDirection" arrowDir
     return obj
 instance FromJSRef PopoverOptions where
   fromJSRef obj = do

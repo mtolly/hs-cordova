@@ -18,11 +18,16 @@ def makeRecord(name, fields)
   lines << "instance ToJSRef #{name} where"
   lines << "  toJSRef opts = do"
   lines << "    obj <- newObj"
-  lines << "    let setJust s f = case f opts of"
+  lines << "    let _setJust s f = case f opts of"
   lines << "          Nothing -> return ()"
   lines << "          Just x -> toJSRef x >>= \\ref -> setProp s ref obj"
+  lines << "        _set s f = toJSRef (f opts) >>= \\ref -> setProp s ref obj"
   fields.each do |field|
-    lines << "    setJust #{field.nameJs.inspect} #{field.nameHs}"
+    if field.type.start_with? 'Maybe'
+      lines << "    _setJust #{field.nameJs.inspect} #{field.nameHs}"
+    else
+      lines << "    _set #{field.nameJs.inspect} #{field.nameHs}"
+    end
   end
   lines << "    return obj"
   lines << "instance FromJSRef #{name} where"
