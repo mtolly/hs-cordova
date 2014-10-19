@@ -3,7 +3,7 @@ version:              0.1
 author:               Michael Tolly
 maintainer:           miketolly@gmail.com
 category:             Web
-build-type:           Simple
+build-type:           Custom
 cabal-version:        >= 1.10
 
 library
