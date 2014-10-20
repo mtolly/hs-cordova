@@ -17,6 +17,15 @@ library
     System.Cordova.Marshal
   other-modules:
     System.Cordova.Internal
+    System.Cordova.Camera.DestinationType
+    System.Cordova.Camera.SourceType
+    System.Cordova.Camera.EncodingType
+    System.Cordova.Camera.MediaType
+    System.Cordova.Camera.PopoverArrowDirection
+    System.Cordova.Camera.Direction
+    System.Cordova.FileSystem.Storage
+    System.Cordova.FileSystem.FileErrorCode
+    System.Cordova.NetworkInformation.Connection
   build-depends:
     base >= 4.7 && < 4.8
     , ghcjs-base == 0.1.0.0

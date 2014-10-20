@@ -1,0 +1,10 @@
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
+%>
+<%= makeEnumModule(__FILE__, 'PopoverArrowDirection', [
+  Tag.new('ArrowUp', 'ARROW_UP'),
+  Tag.new('ArrowDown', 'ARROW_DOWN'),
+  Tag.new('ArrowLeft', 'ARROW_LEFT'),
+  Tag.new('ArrowRight', 'ARROW_RIGHT'),
+  Tag.new('ArrowAny', 'ARROW_ANY'),
+], 'Camera.PopoverArrowDirection.') %>

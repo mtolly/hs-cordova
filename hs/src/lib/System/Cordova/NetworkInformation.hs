@@ -6,22 +6,8 @@ module System.Cordova.NetworkInformation
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Maybe (fromMaybe)
-import System.Cordova.Internal
 
-<%
-require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/enums.rb')
-%>
-
-<%= makeEnum('Connection', [
-  'Unknown',
-  'Ethernet',
-  'Wifi',
-  Tag.new('Cell2G', 'CELL_2G'),
-  Tag.new('Cell3G', 'CELL_3G'),
-  Tag.new('Cell4G', 'CELL_4G'),
-  'Cell',
-  'None',
-], 'Connection.') %>
+import System.Cordova.NetworkInformation.Connection
 
 foreign import javascript unsafe
   "navigator.connection.type"

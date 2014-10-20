@@ -21,14 +21,11 @@ module System.Cordova.FileSystem
 ) where
 
 import GHCJS.Types (JSRef)
-import GHCJS.Marshal
 import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
 
-<%
-# require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/records.rb')
-require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/enums.rb')
-%>
+import System.Cordova.FileSystem.Storage
+import System.Cordova.FileSystem.FileErrorCode
 
 <%=
 lines = []
@@ -40,25 +37,3 @@ dirs.each do |dir|
 end
 lines.join("\n")
 %>
-
-<%= makeEnum('Storage', %w{
-  Temporary
-  Persistent
-}, 'window.') %>
-
-<%= makeEnum('FileErrorCode', %w{
-  NOT_FOUND_ERR
-  SECURITY_ERR
-  ABORT_ERR
-  NOT_READABLE_ERR
-  ENCODING_ERR
-  NO_MODIFICATION_ALLOWED_ERR
-  INVALID_STATE_ERR
-  SYNTAX_ERR
-  INVALID_MODIFICATION_ERR
-  QUOTA_EXCEEDED_ERR
-  TYPE_MISMATCH_ERR
-  PATH_EXISTS_ERR
-}.map do |err|
-  Tag.new(err.split('_').map(&:capitalize).join(''), err)
-end, 'FileError.') %>
