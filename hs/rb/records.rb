@@ -7,14 +7,34 @@ class Field
   attr_reader :type, :nameHs, :nameJs
 end
 
-def makeRecord(name, fields)
-  lines = []
+def erbFileToModule(erb_file)
+  parts = erb_file.split('/')
+  parts.shift until parts[0] == 'lib'
+  parts.shift
+  parts[-1] = parts[-1].match(/\.erb$/) { |md| md.pre_match }
+  parts.join('.')
+end
+
+def makeRecordModule(erb_file, imports, name, fields)
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: #{field.type}"
   end
+  lines = []
+
+  lines << "module #{erbFileToModule(erb_file)} where"
+
+  lines << "import GHCJS.Foreign"
+  lines << "import GHCJS.Marshal"
+  lines << "import Data.Default"
+  lines << "import Control.Applicative"
+  lines << "import System.Cordova.Internal"
+  lines += imports
+
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
+
   defaultExprs = [name] + Array.new(fields.length, 'def')
   lines << "instance Default #{name} where def = #{defaultExprs.join(' ')}"
+
   lines << "instance ToJSRef #{name} where"
   lines << "  toJSRef opts = do"
   lines << "    obj <- newObj"
@@ -30,6 +50,7 @@ def makeRecord(name, fields)
     end
   end
   lines << "    return obj"
+
   lines << "instance FromJSRef #{name} where"
   lines << "  fromJSRef obj = do"
   bound = []
@@ -39,5 +60,6 @@ def makeRecord(name, fields)
     lines << "    #{thisBound} <- fromProp #{field.nameJs.inspect} obj"
   end
   lines << "    return $ #{name} <$> #{bound.join(' <*> ')}"
+
   lines.join("\n")
 end

@@ -16,8 +16,6 @@ import GHCJS.Types
 import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
-import Data.Default
-import Control.Applicative
 
 import System.Cordova.Camera.DestinationType
 import System.Cordova.Camera.SourceType
@@ -26,32 +24,8 @@ import System.Cordova.Camera.MediaType
 import System.Cordova.Camera.PopoverArrowDirection
 import System.Cordova.Camera.Direction
 
-<%
-require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/records.rb')
-%>
-
-<%= makeRecord('CameraOptions', [
-  Field.new('Maybe Int', 'quality'),
-  Field.new('Maybe DestinationType', 'destinationType'),
-  Field.new('Maybe SourceType', 'sourceType'),
-  Field.new('Maybe Bool', 'allowEdit'),
-  Field.new('Maybe EncodingType', 'encodingType'),
-  Field.new('Maybe Int', 'targetWidth'),
-  Field.new('Maybe Int', 'targetHeight'),
-  Field.new('Maybe MediaType', 'mediaType'),
-  Field.new('Maybe Bool', 'correctOrientation'),
-  Field.new('Maybe Bool', 'saveToPhotoAlbum'),
-  Field.new('Maybe PopoverOptions', 'popoverOptions'),
-  Field.new('Maybe Direction', 'cameraDirection'),
-]) %>
-
-<%= makeRecord('PopoverOptions', [
-  Field.new('Maybe Int', 'popX', 'x'),
-  Field.new('Maybe Int', 'popY', 'y'),
-  Field.new('Maybe Int', 'popWidth', 'width'),
-  Field.new('Maybe Int', 'popHeight', 'height'),
-  Field.new('Maybe Int', 'arrowDir', 'PopoverArrowDirection'),
-]) %>
+import System.Cordova.Camera.CameraOptions
+import System.Cordova.Camera.PopoverOptions
 
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"

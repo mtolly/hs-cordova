@@ -23,6 +23,8 @@ library
     System.Cordova.Camera.MediaType
     System.Cordova.Camera.PopoverArrowDirection
     System.Cordova.Camera.Direction
+    System.Cordova.Camera.CameraOptions
+    System.Cordova.Camera.PopoverOptions
     System.Cordova.FileSystem.Storage
     System.Cordova.FileSystem.FileErrorCode
     System.Cordova.NetworkInformation.Connection
