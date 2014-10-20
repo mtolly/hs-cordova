@@ -6,21 +6,13 @@ class Tag
   attr_reader :nameHs, :exprJs
 end
 
-def erbFileToModule(erb_file)
-  parts = erb_file.split('/')
-  parts.shift until parts[0] == 'lib'
-  parts.shift
-  parts[-1] = parts[-1].match(/\.erb$/) { |md| md.pre_match }
-  parts.join('.')
-end
-
-def makeEnumModule(erb_file, name, tags, exprPrefix = '')
+def makeEnumModule(name, tags, exprPrefix = '')
   tags = tags.map do |t|
     t.is_a?(String) ? Tag.new(t) : t
   end
   lines = []
 
-  lines << "module #{erbFileToModule(erb_file)} where"
+  lines << "module #{ENV['ERB_HS_MODULE']} where"
 
   lines << "import GHCJS.Types"
   lines << "import GHCJS.Marshal"

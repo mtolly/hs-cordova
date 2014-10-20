@@ -1,0 +1,2 @@
+#!/bin/sh
+cabal configure --ghcjs && node dist/setup/setup.jsexe/all.js build

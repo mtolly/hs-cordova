@@ -7,21 +7,13 @@ class Field
   attr_reader :type, :nameHs, :nameJs
 end
 
-def erbFileToModule(erb_file)
-  parts = erb_file.split('/')
-  parts.shift until parts[0] == 'lib'
-  parts.shift
-  parts[-1] = parts[-1].match(/\.erb$/) { |md| md.pre_match }
-  parts.join('.')
-end
-
-def makeRecordModule(erb_file, imports, name, fields)
+def makeRecordModule(imports, name, fields)
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: #{field.type}"
   end
   lines = []
 
-  lines << "module #{erbFileToModule(erb_file)} where"
+  lines << "module #{ENV['ERB_HS_MODULE']} where"
 
   lines << "import GHCJS.Foreign"
   lines << "import GHCJS.Marshal"

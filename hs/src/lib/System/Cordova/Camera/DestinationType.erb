@@ -1,7 +1,7 @@
 <%
 require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
 %>
-<%= makeEnumModule(__FILE__, 'DestinationType', [
+<%= makeEnumModule('DestinationType', [
   Tag.new('DataURL', 'DATA_URL'),
   Tag.new('FileURI', 'FILE_URI'),
   Tag.new('NativeURI', 'NATIVE_URI'),
