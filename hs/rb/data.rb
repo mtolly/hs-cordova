@@ -1,3 +1,46 @@
+def hsImports
+<<-EOS
+import GHCJS.Foreign
+import GHCJS.Types
+import GHCJS.Marshal
+import System.Cordova.Internal
+import Data.Default
+import Control.Applicative
+EOS
+end
+
+class Tag
+  def initialize(nameHs, exprJs = nameHs.upcase)
+    @nameHs = nameHs
+    @exprJs = exprJs
+  end
+  attr_reader :nameHs, :exprJs
+end
+
+def makeEnum(name, tags, exprPrefix = '')
+  tags = tags.map do |t|
+    t.is_a?(String) ? Tag.new(t) : t
+  end
+  lines = []
+
+  lines << "data #{name} = #{tags.map(&:nameHs).join(' | ')} deriving (Eq, Ord, Show, Read, Enum, Bounded)"
+  tags.each do |tag|
+    importName = "_#{name}_#{tag.nameHs}"
+    lines << "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: JSRef #{name}"
+  end
+
+  lines << "instance ToJSRef #{name} where"
+  tags.each do |tag|
+    importName = "_#{name}_#{tag.nameHs}"
+    lines << "  toJSRef #{tag.nameHs} = return #{importName}"
+  end
+
+  lines << "instance FromJSRef #{name} where"
+  lines << "  fromJSRef = js_fromEnum"
+
+  lines.join("\n")
+end
+
 class Field
   def initialize(type, nameHs, nameJs = nameHs)
     @type = type
@@ -7,22 +50,11 @@ class Field
   attr_reader :type, :nameHs, :nameJs
 end
 
-def makeRecordModule(imports, name, fields, default = true)
+def makeRecord(name, fields, default = true)
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: #{field.type}"
   end
   lines = []
-
-  lines << "module #{ENV['ERB_HS_MODULE']} where"
-
-  lines << "import GHCJS.Foreign"
-  lines << "import GHCJS.Marshal"
-  if default
-    lines << "import Data.Default"
-  end
-  lines << "import Control.Applicative"
-  lines << "import System.Cordova.Internal"
-  lines += imports
 
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
 

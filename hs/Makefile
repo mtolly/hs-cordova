@@ -7,4 +7,4 @@ erb: $(hs_files)
 	erb $< > $@
 
 clean:
-	rm $(hs_files)
+	rm -f $(hs_files)

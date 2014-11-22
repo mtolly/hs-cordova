@@ -1,0 +1,101 @@
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
+%>
+{-# LANGUAGE JavaScriptFFI #-}
+module System.Cordova.Camera
+( CameraOptions(..)
+, DestinationType(..)
+, SourceType(..)
+, EncodingType(..)
+, MediaType(..)
+, PopoverOptions(..)
+, PopoverArrowDirection(..)
+, Direction(..)
+, getPicture
+, cleanup
+) where
+
+import GHCJS.Types
+import GHCJS.Foreign
+import GHCJS.Marshal
+import System.Cordova.Internal
+<%= hsImports %>
+
+foreign import javascript interruptible
+  "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
+  js_getPicture :: JSRef CameraOptions -> IO (JSEither JSString JSString)
+
+getPicture :: CameraOptions -> IO (Either String String)
+getPicture opts = do
+  eitherJJ <- toJSRef opts >>= js_getPicture >>= fromJSEither
+  return $ case eitherJJ of
+    Left err -> Left $ fromJSString err
+    Right x -> Right $ fromJSString x
+
+foreign import javascript interruptible
+  "navigator.camera.cleanup(hs_good($c), hs_error($c));"
+  js_cleanup :: IO (JSEither JSString (JSRef ()))
+
+cleanup :: IO (Maybe String)
+cleanup = js_cleanup >>= fromJSEither >>= \x -> return $ case x of
+  Left err -> Just $ fromJSString err
+  Right _  -> Nothing
+
+<%= makeRecord('CameraOptions', [
+  Field.new('Maybe Int', 'quality'),
+  Field.new('Maybe DestinationType', 'destinationType'),
+  Field.new('Maybe SourceType', 'sourceType'),
+  Field.new('Maybe Bool', 'allowEdit'),
+  Field.new('Maybe EncodingType', 'encodingType'),
+  Field.new('Maybe Int', 'targetWidth'),
+  Field.new('Maybe Int', 'targetHeight'),
+  Field.new('Maybe MediaType', 'mediaType'),
+  Field.new('Maybe Bool', 'correctOrientation'),
+  Field.new('Maybe Bool', 'saveToPhotoAlbum'),
+  Field.new('Maybe PopoverOptions', 'popoverOptions'),
+  Field.new('Maybe Direction', 'cameraDirection'),
+]) %>
+
+<%= makeEnum('DestinationType', [
+  Tag.new('DataURL', 'DATA_URL'),
+  Tag.new('FileURI', 'FILE_URI'),
+  Tag.new('NativeURI', 'NATIVE_URI'),
+], 'Camera.DestinationType.') %>
+
+<%= makeEnum('Direction', %w{
+  Back
+  Front
+}, 'Camera.Direction.') %>
+
+<%= makeEnum('EncodingType', %w{
+  JPEG
+  PNG
+}, 'Camera.EncodingType.') %>
+
+<%= makeEnum('MediaType', %w{
+  Picture
+  Video
+  AllMedia
+}, 'Camera.MediaType.') %>
+
+<%= makeEnum('PopoverArrowDirection', [
+  Tag.new('ArrowUp', 'ARROW_UP'),
+  Tag.new('ArrowDown', 'ARROW_DOWN'),
+  Tag.new('ArrowLeft', 'ARROW_LEFT'),
+  Tag.new('ArrowRight', 'ARROW_RIGHT'),
+  Tag.new('ArrowAny', 'ARROW_ANY'),
+], 'Camera.PopoverArrowDirection.') %>
+
+<%= makeRecord('PopoverOptions', [
+  Field.new('Maybe Int', 'popX', 'x'),
+  Field.new('Maybe Int', 'popY', 'y'),
+  Field.new('Maybe Int', 'popWidth', 'width'),
+  Field.new('Maybe Int', 'popHeight', 'height'),
+  Field.new('Maybe Int', 'arrowDir', 'PopoverArrowDirection'),
+]) %>
+
+<%= makeEnum('SourceType', %w{
+  PhotoLibrary
+  Camera
+  SavedPhotoAlbum
+}, 'Camera.PictureSourceType.') %>

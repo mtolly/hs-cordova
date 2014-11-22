@@ -1,8 +1,0 @@
-<%
-ENV['ERB_HS_MODULE'] = 'System.Cordova.Camera.Direction'
-require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
-%>
-<%= makeEnumModule('Direction', %w{
-  Back
-  Front
-}, 'Camera.Direction.') %>

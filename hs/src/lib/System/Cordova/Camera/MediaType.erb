@@ -1,9 +1,0 @@
-<%
-ENV['ERB_HS_MODULE'] = 'System.Cordova.Camera.MediaType'
-require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
-%>
-<%= makeEnumModule('MediaType', %w{
-  Picture
-  Video
-  AllMedia
-}, 'Camera.MediaType.') %>

@@ -1,8 +1,0 @@
-<%
-ENV['ERB_HS_MODULE'] = 'System.Cordova.FileSystem.Storage'
-require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
-%>
-<%= makeEnumModule('Storage', %w{
-  Temporary
-  Persistent
-}, 'window.') %>

@@ -1,8 +1,0 @@
-<%
-ENV['ERB_HS_MODULE'] = 'System.Cordova.Camera.EncodingType'
-require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
-%>
-<%= makeEnumModule('EncodingType', %w{
-  JPEG
-  PNG
-}, 'Camera.EncodingType.') %>

@@ -1,9 +1,0 @@
-<%
-ENV['ERB_HS_MODULE'] = 'System.Cordova.Camera.SourceType'
-require File.expand_path(File.dirname(__FILE__) + '/../../../../../rb/enums.rb')
-%>
-<%= makeEnumModule('SourceType', %w{
-  PhotoLibrary
-  Camera
-  SavedPhotoAlbum
-}, 'Camera.PictureSourceType.') %>
