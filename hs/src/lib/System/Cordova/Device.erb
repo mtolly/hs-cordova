@@ -1,18 +1,17 @@
-<% strings = %w{cordova model platform uuid version} %>
+<% fields = %w{cordova model platform uuid version} %>
 module System.Cordova.Device
-( <%= strings.join(', ') %>
+( <%= fields.join(', ') %>
 ) where
 
 import GHCJS.Types (JSString)
 import GHCJS.Foreign (fromJSString)
 
-<%=
-lines = []
-strings.each do |str|
-  lines << "foreign import javascript unsafe \"device.#{str}\" js_#{str} :: JSString"
-  lines << "#{str} :: String"
-  lines << "#{str} = fromJSString js_#{str}"
-  lines << ''
-end
-lines.join("\n")
-%>
+<% fields.each do |field| %>
+
+foreign import javascript unsafe
+  "device.<%= field %>"
+  js_<%= field %> :: JSString
+<%= field %> :: String
+<%= field %> = fromJSString js_<%= field %>
+
+<% end %>
