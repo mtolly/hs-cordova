@@ -135,7 +135,7 @@ instance ToJSRef PopoverArrowDirection where
 instance FromJSRef PopoverArrowDirection where
   fromJSRef = js_fromEnum
 
-data PopoverOptions = PopoverOptions { popX :: Maybe Int, popY :: Maybe Int, popWidth :: Maybe Int, popHeight :: Maybe Int, popArrowDir :: Maybe Int } deriving (Eq, Ord, Show, Read)
+data PopoverOptions = PopoverOptions { popX :: Maybe Double, popY :: Maybe Double, popWidth :: Maybe Double, popHeight :: Maybe Double, popArrowDir :: Maybe PopoverArrowDirection } deriving (Eq, Ord, Show, Read)
 instance Default PopoverOptions where def = PopoverOptions def def def def def
 instance ToJSRef PopoverOptions where
   toJSRef opts = do

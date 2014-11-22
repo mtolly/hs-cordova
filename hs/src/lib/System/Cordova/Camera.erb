@@ -84,11 +84,11 @@ cleanup = js_cleanup >>= fromJSEither >>= \x -> return $ case x of
 ], 'Camera.PopoverArrowDirection.') %>
 
 <%= makeRecord('PopoverOptions', [
-  Field.new('Maybe Int', 'popX', 'x'),
-  Field.new('Maybe Int', 'popY', 'y'),
-  Field.new('Maybe Int', 'popWidth', 'width'),
-  Field.new('Maybe Int', 'popHeight', 'height'),
-  Field.new('Maybe Int', 'popArrowDir', 'arrowDir'),
+  Field.new('Maybe Double', 'popX', 'x'),
+  Field.new('Maybe Double', 'popY', 'y'),
+  Field.new('Maybe Double', 'popWidth', 'width'),
+  Field.new('Maybe Double', 'popHeight', 'height'),
+  Field.new('Maybe PopoverArrowDirection', 'popArrowDir', 'arrowDir'),
 ]) %>
 
 <%= makeEnum('SourceType', %w{
