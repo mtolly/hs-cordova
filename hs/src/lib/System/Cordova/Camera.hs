@@ -138,7 +138,7 @@ instance ToJSRef PopoverArrowDirection where
 instance FromJSRef PopoverArrowDirection where
   fromJSRef = js_fromEnum
 
-data PopoverOptions = PopoverOptions { popX :: Maybe Int, popY :: Maybe Int, popWidth :: Maybe Int, popHeight :: Maybe Int, arrowDir :: Maybe Int } deriving (Eq, Ord, Show, Read)
+data PopoverOptions = PopoverOptions { popX :: Maybe Int, popY :: Maybe Int, popWidth :: Maybe Int, popHeight :: Maybe Int, popArrowDir :: Maybe Int } deriving (Eq, Ord, Show, Read)
 instance Default PopoverOptions where def = PopoverOptions def def def def def
 instance ToJSRef PopoverOptions where
   toJSRef opts = do
@@ -151,7 +151,7 @@ instance ToJSRef PopoverOptions where
     _setJust "y" popY
     _setJust "width" popWidth
     _setJust "height" popHeight
-    _setJust "PopoverArrowDirection" arrowDir
+    _setJust "arrowDir" popArrowDir
     return obj
 instance FromJSRef PopoverOptions where
   fromJSRef obj = do
@@ -159,7 +159,7 @@ instance FromJSRef PopoverOptions where
     _x1 <- fromProp "y" obj
     _x2 <- fromProp "width" obj
     _x3 <- fromProp "height" obj
-    _x4 <- fromProp "PopoverArrowDirection" obj
+    _x4 <- fromProp "arrowDir" obj
     return $ PopoverOptions <$> _x0 <*> _x1 <*> _x2 <*> _x3 <*> _x4
 
 data SourceType = PhotoLibrary | Camera | SavedPhotoAlbum deriving (Eq, Ord, Show, Read, Enum, Bounded)

@@ -91,7 +91,7 @@ cleanup = js_cleanup >>= fromJSEither >>= \x -> return $ case x of
   Field.new('Maybe Int', 'popY', 'y'),
   Field.new('Maybe Int', 'popWidth', 'width'),
   Field.new('Maybe Int', 'popHeight', 'height'),
-  Field.new('Maybe Int', 'arrowDir', 'PopoverArrowDirection'),
+  Field.new('Maybe Int', 'popArrowDir', 'arrowDir'),
 ]) %>
 
 <%= makeEnum('SourceType', %w{
