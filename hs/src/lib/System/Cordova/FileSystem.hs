@@ -10,7 +10,8 @@ module System.Cordova.FileSystem
 , root, filesystem
 , fullPath, name, isFile, isDirectory
 , Metadata(..), getMetadata
-, remove
+, remove, moveTo, copyTo
+, getParent
 ) where
 
 import GHCJS.Types (JSRef)
@@ -18,6 +19,7 @@ import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad ((>=>))
 import Data.Time.Clock
+import Data.Bitraversable (bitraverse)
 import GHCJS.Foreign
 import GHCJS.Types
 import GHCJS.Marshal
@@ -140,7 +142,7 @@ requestFileSystem :: Storage -> Integer -> IO (Either FileError FileSystem)
 requestFileSystem stor size = do
   stor' <- toJSRef stor
   res <- js_requestFileSystem stor' $ fromIntegral size
-  fromJSEither res >>= either (fmap Left . fromJSRef') (fmap Right . return)
+  fromJSEither res >>= bitraverse fromJSRef' return
 
 data Entry_
 type Entry = JSRef Entry_
@@ -193,3 +195,31 @@ foreign import javascript interruptible
   js_remove :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
 remove :: Entry -> IO (Either FileError ())
 remove = js_remove >=> fromJSEither'
+
+
+foreign import javascript interruptible
+  "$3.moveTo($1, $2, hs_good($c), hs_error($c));"
+  js_moveTo
+  :: Entry -> JSRef (Maybe String) -> Entry
+  -> IO (JSEither (JSRef FileError) Entry)
+moveTo :: Entry -> Maybe FilePath -> Entry -> IO (Either FileError Entry)
+moveTo dir new old = do
+  new' <- toJSRef new
+  js_moveTo dir new' old >>= fromJSEither >>= bitraverse fromJSRef' return
+
+foreign import javascript interruptible
+  "$3.copyTo($1, $2, hs_good($c), hs_error($c));"
+  js_copyTo
+  :: Entry -> JSRef (Maybe String) -> Entry
+  -> IO (JSEither (JSRef FileError) Entry)
+copyTo :: Entry -> Maybe FilePath -> Entry -> IO (Either FileError Entry)
+copyTo dir new old = do
+  new' <- toJSRef new
+  js_copyTo dir new' old >>= fromJSEither >>= bitraverse fromJSRef' return
+
+
+foreign import javascript interruptible
+  "$1.getParent(hs_good($c), hs_error($c));"
+  js_getParent :: Entry -> IO (JSEither (JSRef FileError) Entry)
+getParent :: Entry -> IO (Either FileError Entry)
+getParent = js_getParent >=> fromJSEither >=> bitraverse fromJSRef' return

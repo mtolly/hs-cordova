@@ -9,6 +9,7 @@ import Control.Monad (forM, guard, join)
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
+import Data.Bitraversable (bitraverse)
 
 type JSEither e a = JSRef (Either e a)
 
@@ -27,8 +28,7 @@ fromJSEither ary = do
 
 fromJSEither' :: (FromJSRef e, FromJSRef a) =>
   JSEither (JSRef e) (JSRef a) -> IO (Either e a)
-fromJSEither' ary = fromJSEither ary >>=
-  either (fmap Left . fromJSRef') (fmap Right . fromJSRef')
+fromJSEither' ary = fromJSEither ary >>= bitraverse fromJSRef' fromJSRef'
 
 js_fromEnum :: (Enum a, Bounded a, ToJSRef a) => JSRef a -> IO (Maybe a)
 js_fromEnum ref = fmap (listToMaybe . catMaybes) $
