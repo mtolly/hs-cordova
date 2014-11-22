@@ -15,10 +15,16 @@ dirs = %w{
   sharedDirectory
 }
 %>
+{-# LANGUAGE JavaScriptFFI #-}
 module System.Cordova.FileSystem
 ( <%= dirs.join(', ') %>
 , Storage(..)
 , FileErrorCode(..)
+, FileSystem_, FileSystem
+, requestFileSystem
+, Entry_, Entry
+, root, filesystem
+, fullPath, name, isFile, isDirectory
 ) where
 
 import GHCJS.Types (JSRef)
@@ -54,7 +60,50 @@ lines.join("\n")
   Tag.new(err.split('_').map(&:capitalize).join(''), err)
 end, 'FileError.') %>
 
+<%= makeRecord('FileError', [
+  Field.new('FileErrorCode', 'code'),
+], false) %>
+
 <%= makeEnum('Storage', %w{
   Temporary
   Persistent
 }, 'window.') %>
+
+data FileSystem_
+type FileSystem = JSRef FileSystem_
+
+foreign import javascript interruptible
+  "requestFileSystem($1, $2, hs_good($c), hs_error($c));"
+  js_requestFileSystem
+  :: JSRef Storage -> Double -> IO (JSEither (JSRef FileError) FileSystem)
+
+requestFileSystem :: Storage -> Integer -> IO (Either FileError FileSystem)
+requestFileSystem stor size = do
+  stor' <- toJSRef stor
+  res <- js_requestFileSystem stor' $ fromIntegral size
+  fromJSEither res >>= either (fmap Left . fromJSRef') (fmap Right . return)
+
+data Entry_
+type Entry = JSRef Entry_
+
+foreign import javascript unsafe
+  "$1.root" root :: FileSystem -> Entry
+
+foreign import javascript unsafe
+  "$1.filesystem" filesystem :: Entry -> FileSystem
+
+foreign import javascript unsafe
+  "$1.fullPath" js_fullPath :: Entry -> JSString
+fullPath :: Entry -> FilePath
+fullPath = fromJSString . js_fullPath
+
+foreign import javascript unsafe
+  "$1.name" js_name :: Entry -> JSString
+name :: Entry -> FilePath
+name = fromJSString . js_name
+
+foreign import javascript unsafe
+  "$1.isFile" isFile :: Entry -> Bool
+
+foreign import javascript unsafe
+  "$1.isDirectory" isDirectory :: Entry -> Bool

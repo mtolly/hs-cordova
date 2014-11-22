@@ -5,6 +5,7 @@ set -e
 app=hs-cordova-create
 
 cd hs
+make # feel free to delete this if you haven't edited the Ruby files
 cabal configure --ghcjs
 cabal build
 mkdir -p ../www/js

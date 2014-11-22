@@ -1,8 +1,14 @@
 
+{-# LANGUAGE JavaScriptFFI #-}
 module System.Cordova.FileSystem
 ( applicationDirectory, applicationStorageDirectory, dataDirectory, cacheDirectory, externalApplicationStorageDirectory, externalDataDirectory, externalCacheDirectory, externalRootDirectory, tempDirectory, syncedDataDirectory, documentsDirectory, sharedDirectory
 , Storage(..)
 , FileErrorCode(..)
+, FileSystem_, FileSystem
+, requestFileSystem
+, Entry_, Entry
+, root, filesystem
+, fullPath, name, isFile, isDirectory
 ) where
 
 import GHCJS.Types (JSRef)
@@ -94,6 +100,21 @@ instance ToJSRef FileErrorCode where
 instance FromJSRef FileErrorCode where
   fromJSRef = js_fromEnum
 
+data FileError = FileError { code :: FileErrorCode } deriving (Eq, Ord, Show, Read)
+instance ToJSRef FileError where
+  toJSRef opts = do
+    obj <- newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> toJSRef x >>= \ref -> setProp s ref obj
+        _set s f = toJSRef (f opts) >>= \ref -> setProp s ref obj
+    _set "code" code
+    return obj
+instance FromJSRef FileError where
+  fromJSRef obj = do
+    _x0 <- fromProp "code" obj
+    return $ FileError <$> _x0
+
 data Storage = Temporary | Persistent deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "window.TEMPORARY" _Storage_Temporary :: JSRef Storage
 foreign import javascript unsafe "window.PERSISTENT" _Storage_Persistent :: JSRef Storage
@@ -102,3 +123,42 @@ instance ToJSRef Storage where
   toJSRef Persistent = return _Storage_Persistent
 instance FromJSRef Storage where
   fromJSRef = js_fromEnum
+
+data FileSystem_
+type FileSystem = JSRef FileSystem_
+
+foreign import javascript interruptible
+  "requestFileSystem($1, $2, hs_good($c), hs_error($c));"
+  js_requestFileSystem
+  :: JSRef Storage -> Double -> IO (JSEither (JSRef FileError) FileSystem)
+
+requestFileSystem :: Storage -> Integer -> IO (Either FileError FileSystem)
+requestFileSystem stor size = do
+  stor' <- toJSRef stor
+  res <- js_requestFileSystem stor' $ fromIntegral size
+  fromJSEither res >>= either (fmap Left . fromJSRef') (fmap Right . return)
+
+data Entry_
+type Entry = JSRef Entry_
+
+foreign import javascript unsafe
+  "$1.root" root :: FileSystem -> Entry
+
+foreign import javascript unsafe
+  "$1.filesystem" filesystem :: Entry -> FileSystem
+
+foreign import javascript unsafe
+  "$1.fullPath" js_fullPath :: Entry -> JSString
+fullPath :: Entry -> FilePath
+fullPath = fromJSString . js_fullPath
+
+foreign import javascript unsafe
+  "$1.name" js_name :: Entry -> JSString
+name :: Entry -> FilePath
+name = fromJSString . js_name
+
+foreign import javascript unsafe
+  "$1.isFile" isFile :: Entry -> Bool
+
+foreign import javascript unsafe
+  "$1.isDirectory" isDirectory :: Entry -> Bool
