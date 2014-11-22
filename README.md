@@ -27,3 +27,5 @@ Completed functionality:
   * [`org.apache.cordova.dialogs`](http://plugins.cordova.io/#/package/org.apache.cordova.dialogs)
 
   * [`org.apache.cordova.network-information`](http://plugins.cordova.io/#/package/org.apache.cordova.network-information)
+
+  * [`org.apache.cordova.geolocation`](http://plugins.cordova.io/#/package/org.apache.cordova.geolocation)

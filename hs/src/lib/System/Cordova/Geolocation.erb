@@ -8,6 +8,7 @@ module System.Cordova.Geolocation
 , PositionError(..)
 , PositionErrorCode(..)
 , getCurrentPosition
+, watchPosition
 ) where
 
 import GHCJS.Types
@@ -15,14 +16,18 @@ import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
 import Data.Time.Clock
+import Control.Monad ((>=>))
 <%= hsImports %>
 
 foreign import javascript interruptible
-  "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c));"
-  js_getCurrentPosition :: IO (JSEither (JSRef PositionError) (JSRef Position))
+  "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);"
+  js_getCurrentPosition
+  :: JSRef GeolocationOptions
+  -> IO (JSEither (JSRef PositionError) (JSRef Position))
 
-getCurrentPosition :: IO (Either PositionError Position)
-getCurrentPosition = js_getCurrentPosition >>= fromJSEither'
+getCurrentPosition :: GeolocationOptions -> IO (Either PositionError Position)
+getCurrentPosition opts =
+  toJSRef opts >>= js_getCurrentPosition >>= fromJSEither'
 
 <%= makeRecord('Coordinates', [
   Field.new('Maybe Double', 'latitude'),
@@ -49,3 +54,35 @@ getCurrentPosition = js_getCurrentPosition >>= fromJSEither'
   PositionUnavailable
   Timeout
 }, 'PositionError.') %>
+
+<%= makeRecord('GeolocationOptions', [
+  Field.new('Maybe Bool', 'enableHighAccuracy'),
+  Field.new('Maybe Double', 'timeout'),
+  Field.new('Maybe Double', 'maximumAge'),
+]) %>
+
+foreign import javascript unsafe
+  "navigator.geolocation.watchPosition($1, $2, $3);"
+  js_watchPosition
+  :: JSFun (JSRef Position -> IO ())
+  -> JSFun (JSRef PositionError -> IO ())
+  -> JSRef GeolocationOptions
+  -> IO (JSRef String)
+
+foreign import javascript unsafe
+  "navigator.geolocation.clearWatch($1);"
+  js_clearWatch :: JSRef String -> IO ()
+
+watchPosition
+  :: GeolocationOptions
+  -> (Either PositionError Position -> IO ())
+  -> IO (IO ())
+watchPosition opts f = do
+  fnGood  <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Right
+  fnError <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Left
+  opts' <- toJSRef opts
+  watchID <- js_watchPosition fnGood fnError opts'
+  return $ do
+    js_clearWatch watchID
+    releaseAll fnGood
+    releaseAll fnError
