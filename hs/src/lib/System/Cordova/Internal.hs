@@ -7,6 +7,8 @@ import GHCJS.Marshal
 import GHCJS.Prim (fromJSInt)
 import Control.Monad (forM, guard, join)
 import Data.Maybe (catMaybes, listToMaybe)
+import Data.Time.Clock
+import Data.Time.Clock.POSIX
 
 type JSEither e a = JSRef (Either e a)
 
@@ -38,3 +40,29 @@ instance FromJSRef a => FromJSRef (Maybe a) where
 
 fromRefMaybe :: (FromJSRef a) => JSRef (Maybe a) -> IO (Maybe a)
 fromRefMaybe = fmap join . fromJSRef
+
+foreign import javascript unsafe
+  "$1.UTC()"
+  js_UTC :: JSRef UTCTime -> IO Double
+
+foreign import javascript unsafe
+  "$1 instanceof Date"
+  js_isDate :: JSRef a -> IO Bool
+
+foreign import javascript unsafe
+  "new Date($1)"
+  js_utcToDate :: Double -> IO (JSRef UTCTime)
+
+instance FromJSRef UTCTime where
+  fromJSRef r = do
+    b <- js_isDate r
+    if b
+      then do
+        milli <- js_UTC r
+        return $ Just $ posixSecondsToUTCTime $ realToFrac $ milli / 1000
+      else return Nothing
+
+instance ToJSRef UTCTime where
+  toJSRef utc = let
+    milli = realToFrac (utcTimeToPOSIXSeconds utc) * 1000
+    in js_utcToDate milli

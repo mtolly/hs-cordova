@@ -7,7 +7,7 @@ class Field
   attr_reader :type, :nameHs, :nameJs
 end
 
-def makeRecordModule(imports, name, fields)
+def makeRecordModule(imports, name, fields, default = true)
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: #{field.type}"
   end
@@ -17,7 +17,9 @@ def makeRecordModule(imports, name, fields)
 
   lines << "import GHCJS.Foreign"
   lines << "import GHCJS.Marshal"
-  lines << "import Data.Default"
+  if default
+    lines << "import Data.Default"
+  end
   lines << "import Control.Applicative"
   lines << "import System.Cordova.Internal"
   lines += imports
@@ -25,7 +27,9 @@ def makeRecordModule(imports, name, fields)
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
 
   defaultExprs = [name] + Array.new(fields.length, 'def')
-  lines << "instance Default #{name} where def = #{defaultExprs.join(' ')}"
+  if default
+    lines << "instance Default #{name} where def = #{defaultExprs.join(' ')}"
+  end
 
   lines << "instance ToJSRef #{name} where"
   lines << "  toJSRef opts = do"

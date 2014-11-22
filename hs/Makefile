@@ -5,3 +5,6 @@ erb: $(hs_files)
 
 %.hs: %.erb
 	erb $< > $@
+
+clean:
+	rm $(hs_files)
