@@ -15,6 +15,7 @@ library
     System.Cordova.Vibration
     System.Cordova.NetworkInformation
     System.Cordova.Dialogs
+    System.Cordova.Geolocation
   other-modules:
     System.Cordova.Internal
     System.Cordova.EventListener

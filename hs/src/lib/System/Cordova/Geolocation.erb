@@ -1,0 +1,51 @@
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
+%>
+{-# LANGUAGE JavaScriptFFI #-}
+module System.Cordova.Geolocation
+( Coordinates(..)
+, Position(..)
+, PositionError(..)
+, PositionErrorCode(..)
+, getCurrentPosition
+) where
+
+import GHCJS.Types
+import GHCJS.Foreign
+import GHCJS.Marshal
+import System.Cordova.Internal
+import Data.Time.Clock
+<%= hsImports %>
+
+foreign import javascript interruptible
+  "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c));"
+  js_getCurrentPosition :: IO (JSEither (JSRef PositionError) (JSRef Position))
+
+getCurrentPosition :: IO (Either PositionError Position)
+getCurrentPosition = js_getCurrentPosition >>= fromJSEither'
+
+<%= makeRecord('Coordinates', [
+  Field.new('Maybe Double', 'latitude'),
+  Field.new('Maybe Double', 'longitude'),
+  Field.new('Maybe Double', 'altitude'),
+  Field.new('Maybe Double', 'accuracy'),
+  Field.new('Maybe Double', 'altitudeAccuracy'),
+  Field.new('Maybe Double', 'heading'),
+  Field.new('Maybe Double', 'speed'),
+]) %>
+
+<%= makeRecord('Position', [
+  Field.new('Coordinates', 'coords'),
+  Field.new('UTCTime', 'timestamp'),
+], false) %>
+
+<%= makeRecord('PositionError', [
+  Field.new('PositionErrorCode', 'code'),
+  Field.new('String', 'message'),
+], false) %>
+
+<%= makeEnum('PositionErrorCode', %w{
+  PermissionDenied
+  PositionUnavailable
+  Timeout
+}, 'PositionError.') %>

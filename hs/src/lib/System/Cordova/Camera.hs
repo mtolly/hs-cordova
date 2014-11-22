@@ -27,14 +27,11 @@ import Control.Applicative
 
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
-  js_getPicture :: JSRef CameraOptions -> IO (JSEither JSString JSString)
+  js_getPicture
+  :: JSRef CameraOptions -> IO (JSEither (JSRef String) (JSRef String))
 
 getPicture :: CameraOptions -> IO (Either String String)
-getPicture opts = do
-  eitherJJ <- toJSRef opts >>= js_getPicture >>= fromJSEither
-  return $ case eitherJJ of
-    Left err -> Left $ fromJSString err
-    Right x -> Right $ fromJSString x
+getPicture opts = toJSRef opts >>= js_getPicture >>= fromJSEither'
 
 foreign import javascript interruptible
   "navigator.camera.cleanup(hs_good($c), hs_error($c));"
