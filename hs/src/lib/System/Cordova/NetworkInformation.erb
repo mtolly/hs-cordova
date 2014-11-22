@@ -4,11 +4,14 @@ require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
 module System.Cordova.NetworkInformation
 ( Connection(..)
 , connectionType
+, offlineEvent
+, onlineEvent
 ) where
 
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Maybe (fromMaybe)
+import System.Cordova.EventListener
 <%= hsImports %>
 
 foreign import javascript unsafe
@@ -28,3 +31,9 @@ connectionType = js_connectionType >>= fmap (fromMaybe Unknown) . fromJSRef
   'Cell',
   'None',
 ], 'Connection.') %>
+
+offlineEvent :: IO () -> IO (IO ())
+offlineEvent f = addEventListener_ "offline" f document
+
+onlineEvent :: IO () -> IO (IO ())
+onlineEvent f = addEventListener_ "online" f document

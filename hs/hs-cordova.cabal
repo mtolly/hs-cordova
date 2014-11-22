@@ -17,6 +17,7 @@ library
     System.Cordova.Dialogs
   other-modules:
     System.Cordova.Internal
+    System.Cordova.EventListener
   build-depends:
     base >= 4.7 && < 4.8
     , ghcjs-base == 0.1.0.0

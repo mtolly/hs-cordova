@@ -2,11 +2,14 @@
 module System.Cordova.NetworkInformation
 ( Connection(..)
 , connectionType
+, offlineEvent
+, onlineEvent
 ) where
 
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Maybe (fromMaybe)
+import System.Cordova.EventListener
 import GHCJS.Foreign
 import GHCJS.Types
 import GHCJS.Marshal
@@ -42,3 +45,9 @@ instance ToJSRef Connection where
   toJSRef None = return _Connection_None
 instance FromJSRef Connection where
   fromJSRef = js_fromEnum
+
+offlineEvent :: IO () -> IO (IO ())
+offlineEvent f = addEventListener_ "offline" f document
+
+onlineEvent :: IO () -> IO (IO ())
+onlineEvent f = addEventListener_ "online" f document

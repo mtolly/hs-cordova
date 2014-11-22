@@ -18,10 +18,12 @@ Completed functionality:
 
   * Waiting for "deviceready"
 
-  * [Camera](http://plugins.cordova.io/#/package/org.apache.cordova.camera)
+  * [`org.apache.cordova.camera`](http://plugins.cordova.io/#/package/org.apache.cordova.camera)
 
-  * [Device](http://plugins.cordova.io/#/package/org.apache.cordova.device)
+  * [`org.apache.cordova.device`](http://plugins.cordova.io/#/package/org.apache.cordova.device)
 
-  * [Vibration](http://plugins.cordova.io/#/package/org.apache.cordova.vibration)
+  * [`org.apache.cordova.vibration`](http://plugins.cordova.io/#/package/org.apache.cordova.vibration)
 
-  * [Dialogs](http://plugins.cordova.io/#/package/org.apache.cordova.dialogs)
+  * [`org.apache.cordova.dialogs`](http://plugins.cordova.io/#/package/org.apache.cordova.dialogs)
+
+  * [`org.apache.cordova.network-information`](http://plugins.cordova.io/#/package/org.apache.cordova.network-information)
