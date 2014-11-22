@@ -25,11 +25,15 @@ module System.Cordova.FileSystem
 , Entry_, Entry
 , root, filesystem
 , fullPath, name, isFile, isDirectory
+, Metadata(..), getMetadata
+, remove
 ) where
 
 import GHCJS.Types (JSRef)
 import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
+import Control.Monad ((>=>))
+import Data.Time.Clock
 <%= hsImports %>
 
 <%=
@@ -107,3 +111,19 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "$1.isDirectory" isDirectory :: Entry -> Bool
+
+<%= makeRecord('Metadata', [
+  Field.new('UTCTime', 'modificationTime'),
+], false) %>
+
+foreign import javascript interruptible
+  "$1.getMetadata(hs_good($c), hs_error($c));"
+  js_getMetadata :: Entry -> IO (JSEither (JSRef FileError) (JSRef Metadata))
+getMetadata :: Entry -> IO (Either FileError Metadata)
+getMetadata = js_getMetadata >=> fromJSEither'
+
+foreign import javascript interruptible
+  "$1.remove(hs_good($c), hs_error($c));"
+  js_remove :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
+remove :: Entry -> IO (Either FileError ())
+remove = js_remove >=> fromJSEither'

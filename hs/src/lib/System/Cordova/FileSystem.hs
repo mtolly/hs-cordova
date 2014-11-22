@@ -9,11 +9,15 @@ module System.Cordova.FileSystem
 , Entry_, Entry
 , root, filesystem
 , fullPath, name, isFile, isDirectory
+, Metadata(..), getMetadata
+, remove
 ) where
 
 import GHCJS.Types (JSRef)
 import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
+import Control.Monad ((>=>))
+import Data.Time.Clock
 import GHCJS.Foreign
 import GHCJS.Types
 import GHCJS.Marshal
@@ -162,3 +166,30 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "$1.isDirectory" isDirectory :: Entry -> Bool
+
+data Metadata = Metadata { modificationTime :: UTCTime } deriving (Eq, Ord, Show, Read)
+instance ToJSRef Metadata where
+  toJSRef opts = do
+    obj <- newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> toJSRef x >>= \ref -> setProp s ref obj
+        _set s f = toJSRef (f opts) >>= \ref -> setProp s ref obj
+    _set "modificationTime" modificationTime
+    return obj
+instance FromJSRef Metadata where
+  fromJSRef obj = do
+    _x0 <- fromProp "modificationTime" obj
+    return $ Metadata <$> _x0
+
+foreign import javascript interruptible
+  "$1.getMetadata(hs_good($c), hs_error($c));"
+  js_getMetadata :: Entry -> IO (JSEither (JSRef FileError) (JSRef Metadata))
+getMetadata :: Entry -> IO (Either FileError Metadata)
+getMetadata = js_getMetadata >=> fromJSEither'
+
+foreign import javascript interruptible
+  "$1.remove(hs_good($c), hs_error($c));"
+  js_remove :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
+remove :: Entry -> IO (Either FileError ())
+remove = js_remove >=> fromJSEither'

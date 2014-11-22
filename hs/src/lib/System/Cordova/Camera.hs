@@ -35,12 +35,10 @@ getPicture opts = toJSRef opts >>= js_getPicture >>= fromJSEither'
 
 foreign import javascript interruptible
   "navigator.camera.cleanup(hs_good($c), hs_error($c));"
-  js_cleanup :: IO (JSEither JSString (JSRef ()))
+  js_cleanup :: IO (JSEither (JSRef String) (JSRef ()))
 
-cleanup :: IO (Maybe String)
-cleanup = js_cleanup >>= fromJSEither >>= \x -> return $ case x of
-  Left err -> Just $ fromJSString err
-  Right _  -> Nothing
+cleanup :: IO (Either String ())
+cleanup = js_cleanup >>= fromJSEither'
 
 data CameraOptions = CameraOptions { quality :: Maybe Int, destinationType :: Maybe DestinationType, sourceType :: Maybe SourceType, allowEdit :: Maybe Bool, encodingType :: Maybe EncodingType, targetWidth :: Maybe Int, targetHeight :: Maybe Int, mediaType :: Maybe MediaType, correctOrientation :: Maybe Bool, saveToPhotoAlbum :: Maybe Bool, popoverOptions :: Maybe PopoverOptions, cameraDirection :: Maybe Direction } deriving (Eq, Ord, Show, Read)
 instance Default CameraOptions where def = CameraOptions def def def def def def def def def def def def
