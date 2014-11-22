@@ -15,6 +15,7 @@ library
     System.Cordova.Vibration
     System.Cordova.NetworkInformation
     System.Cordova.Marshal
+    System.Cordova.Dialogs
   other-modules:
     System.Cordova.Internal
     System.Cordova.Camera.DestinationType

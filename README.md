@@ -23,3 +23,5 @@ Completed functionality:
   * [Device](http://plugins.cordova.io/#/package/org.apache.cordova.device)
 
   * [Vibration](http://plugins.cordova.io/#/package/org.apache.cordova.vibration)
+
+  * [Dialogs](http://plugins.cordova.io/#/package/org.apache.cordova.dialogs)
