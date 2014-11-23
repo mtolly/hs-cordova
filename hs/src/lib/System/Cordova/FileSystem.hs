@@ -3,7 +3,7 @@
 module System.Cordova.FileSystem
 ( applicationDirectory, applicationStorageDirectory, dataDirectory, cacheDirectory, externalApplicationStorageDirectory, externalDataDirectory, externalCacheDirectory, externalRootDirectory, tempDirectory, syncedDataDirectory, documentsDirectory, sharedDirectory
 , Storage(..)
-, FileErrorCode(..)
+, FileError(..), FileErrorCode(..)
 , FileSystem_, FileSystem
 , requestFileSystem
 , Entry_, Entry
@@ -16,6 +16,8 @@ module System.Cordova.FileSystem
 , getParent
 , resolveLocalFileSystemURL
 , GetFlags(..), getFile, getDirectory
+, DirReader_, DirReader, createReader, readEntries
+, readAllEntries
 ) where
 
 import GHCJS.Types (JSRef)
@@ -318,3 +320,26 @@ getDirectory f flags dir = do
   js_getDirectory (toJSString f) flags' dir >>= fromJSEither
     >>= bitraverse fromJSRef' return
 
+
+data DirReader_
+type DirReader = JSRef DirReader_
+
+foreign import javascript unsafe
+  "$1.createReader()"
+  createReader :: Entry -> IO DirReader
+
+foreign import javascript interruptible
+  "$1.readEntries(hs_good($c), hs_error($c));"
+  js_readEntries :: DirReader -> IO (JSEither (JSRef FileError) (JSRef [Entry]))
+
+readEntries :: DirReader -> IO (Either FileError [Entry])
+readEntries = js_readEntries >=> fromJSEither'
+
+readAllEntries :: Entry -> IO (Either FileError [Entry])
+readAllEntries dir = do
+  r <- createReader dir
+  let go ents = readEntries r >>= \res -> case res of
+        Left e -> return $ Left e
+        Right [] -> return $ Right ents
+        Right ents' -> go $ ents' ++ ents
+  go []
