@@ -57,6 +57,9 @@ instance FromJSRef a => FromJSRef (Maybe a) where
         Just x  -> Just (Just x)
         Nothing -> Nothing
 
+instance ToJSRef Integer where
+  toJSRef i = fmap castRef $ toJSRef (fromInteger i :: Double)
+
 fromRefMaybe :: (FromJSRef a) => JSRef (Maybe a) -> IO (Maybe a)
 fromRefMaybe = fmap join . fromJSRef
 

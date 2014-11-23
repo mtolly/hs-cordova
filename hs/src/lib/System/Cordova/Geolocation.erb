@@ -19,15 +19,11 @@ import Data.Time.Clock
 import Control.Monad ((>=>))
 <%= hsImports %>
 
-foreign import javascript interruptible
-  "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);"
-  js_getCurrentPosition
-  :: JSRef GeolocationOptions
-  -> IO (JSEitherRef PositionError Position)
-
-getCurrentPosition :: GeolocationOptions -> IO (Either PositionError Position)
-getCurrentPosition opts =
-  toJSRef opts >>= js_getCurrentPosition >>= fromJSEitherRef
+<%= twoCallbacks(
+  'getCurrentPosition',
+  'navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);',
+  ['GeolocationOptions'], 'PositionError', 'Position',
+) %>
 
 <%= makeRecord('Coordinates', [
   Field.new('Maybe Double', 'latitude'),

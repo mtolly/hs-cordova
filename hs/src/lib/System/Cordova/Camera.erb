@@ -15,25 +15,18 @@ module System.Cordova.Camera
 , cleanup
 ) where
 
-import GHCJS.Types
 import GHCJS.Marshal
-import System.Cordova.Internal
 <%= hsImports %>
 
-foreign import javascript interruptible
-  "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
-  js_getPicture
-  :: JSRef CameraOptions -> IO (JSEitherRef String String)
+<%= twoCallbacks(
+  'getPicture', 'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
+  ['CameraOptions'], 'String', 'String',
+) %>
 
-getPicture :: CameraOptions -> IO (Either String String)
-getPicture opts = toJSRef opts >>= js_getPicture >>= fromJSEitherRef
-
-foreign import javascript interruptible
-  "navigator.camera.cleanup(hs_good($c), hs_error($c));"
-  js_cleanup :: IO (JSEitherRef String ())
-
-cleanup :: IO (Either String ())
-cleanup = js_cleanup >>= fromJSEitherRef
+<%= twoCallbacks(
+  'cleanup', 'navigator.camera.cleanup(hs_good($c), hs_error($c));',
+  [], 'String', '()',
+) %>
 
 <%= makeRecord('CameraOptions', [
   Field.new('Maybe Int', 'quality'),

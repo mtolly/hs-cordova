@@ -27,7 +27,6 @@ import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
-import Control.Monad ((>=>))
 import Data.Time.Clock
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
@@ -169,11 +168,12 @@ type FileSystem = JSRef FileSystem_
 
 foreign import javascript interruptible
   "requestFileSystem($1, $2, hs_good($c), hs_error($c));"
-  js_requestFileSystem :: JSRef Storage -> Double  -> IO (JSEitherRef FileError FileSystem)
-requestFileSystem      :: Storage       -> Integer -> IO (Either      FileError FileSystem)
-requestFileSystem stor size = do
-  stor' <- toJSRef stor
-  js_requestFileSystem stor' (fromIntegral size) >>= fromJSEitherRef
+  js_requestFileSystem :: RTypes.JSRef (Storage) -> RTypes.JSRef (Integer) -> IO (RInternal.JSEitherRef (FileError) (FileSystem))
+requestFileSystem :: Storage -> Integer -> IO (Either (FileError) (FileSystem))
+requestFileSystem arg0 arg1 = do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  js_requestFileSystem arg0' arg1' >>= RInternal.fromJSEitherRef
 
 data File
 data Dir
@@ -221,7 +221,10 @@ foreign import javascript unsafe
   "$1.isDirectory" isDirectory :: Entry a -> Bool
 
 classifyEntry :: Entry a -> Either (Entry File) (Entry Dir)
-classifyEntry e = if isFile e then Left (castRef e) else Right (castRef e)
+classifyEntry e
+  | isFile      e = Left  $ castRef e
+  | isDirectory e = Right $ castRef e
+  | otherwise     = error "classifyEntry: Entry is neither File nor Dir"
 
 genericEntry :: Entry a -> Entry ()
 genericEntry = castRef
@@ -243,56 +246,67 @@ instance RMarshal.FromJSRef Metadata where
 
 foreign import javascript interruptible
   "$1.getMetadata(hs_good($c), hs_error($c));"
-  js_getMetadata :: Entry a -> IO (JSEitherRef FileError Metadata)
-getMetadata      :: Entry a -> IO (Either      FileError Metadata)
-getMetadata = js_getMetadata >=> fromJSEitherRef
+  js_getMetadata :: RTypes.JSRef (Entry a) -> IO (RInternal.JSEitherRef (FileError) (Metadata))
+getMetadata :: Entry a -> IO (Either (FileError) (Metadata))
+getMetadata arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_getMetadata arg0' >>= RInternal.fromJSEitherRef
 
 -- TODO: setMetadata
 
-
 foreign import javascript interruptible
   "$1.remove(hs_good($c), hs_error($c));"
-  js_remove :: Entry a -> IO (JSEitherRef FileError ())
-remove      :: Entry a -> IO (Either      FileError ())
-remove = js_remove >=> fromJSEitherRef
+  js_remove :: RTypes.JSRef (Entry a) -> IO (RInternal.JSEitherRef (FileError) (()))
+remove :: Entry a -> IO (Either (FileError) (()))
+remove arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_remove arg0' >>= RInternal.fromJSEitherRef
 
 foreign import javascript interruptible
   "$1.removeRecursively(hs_good($c), hs_error($c));"
-  js_removeRecursively :: Entry Dir -> IO (JSEitherRef FileError ())
-removeRecursively      :: Entry Dir -> IO (Either      FileError ())
-removeRecursively = js_removeRecursively >=> fromJSEitherRef
-
+  js_removeRecursively :: RTypes.JSRef (Entry Dir) -> IO (RInternal.JSEitherRef (FileError) (()))
+removeRecursively :: Entry Dir -> IO (Either (FileError) (()))
+removeRecursively arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_removeRecursively arg0' >>= RInternal.fromJSEitherRef
 
 
 foreign import javascript interruptible
-  "$3.moveTo($1, $2, hs_good($c), hs_error($c));"
-  js_moveTo :: Entry Dir -> JSRef (Maybe String) -> Entry a -> IO (JSEitherRef FileError (Entry a))
-moveTo      :: Entry Dir -> Maybe FilePath       -> Entry a -> IO (Either      FileError (Entry a))
-moveTo dir new old = do
-  new' <- toJSRef new
-  js_moveTo dir new' old >>= fromJSEitherRef
+  "$1.moveTo(hs_good($c), hs_error($c));"
+  js_moveTo :: RTypes.JSRef (Entry Dir) -> RTypes.JSRef (Maybe FilePath) -> RTypes.JSRef (Entry a) -> IO (RInternal.JSEitherRef (FileError) (Entry a))
+moveTo :: Entry Dir -> Maybe FilePath -> Entry a -> IO (Either (FileError) (Entry a))
+moveTo arg0 arg1 arg2 = do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  arg2' <- RMarshal.toJSRef arg2
+  js_moveTo arg0' arg1' arg2' >>= RInternal.fromJSEitherRef
 
 foreign import javascript interruptible
-  "$3.copyTo($1, $2, hs_good($c), hs_error($c));"
-  js_copyTo :: Entry Dir -> JSRef (Maybe String) -> Entry a -> IO (JSEitherRef FileError (Entry a))
-copyTo      :: Entry Dir -> Maybe FilePath       -> Entry a -> IO (Either      FileError (Entry a))
-copyTo dir new old = do
-  new' <- toJSRef new
-  js_copyTo dir new' old >>= fromJSEitherRef
+  "$1.copyTo(hs_good($c), hs_error($c));"
+  js_copyTo :: RTypes.JSRef (Entry Dir) -> RTypes.JSRef (Maybe FilePath) -> RTypes.JSRef (Entry a) -> IO (RInternal.JSEitherRef (FileError) (Entry a))
+copyTo :: Entry Dir -> Maybe FilePath -> Entry a -> IO (Either (FileError) (Entry a))
+copyTo arg0 arg1 arg2 = do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  arg2' <- RMarshal.toJSRef arg2
+  js_copyTo arg0' arg1' arg2' >>= RInternal.fromJSEitherRef
 
 
 foreign import javascript interruptible
   "$1.getParent(hs_good($c), hs_error($c));"
-  js_getParent :: Entry a -> IO (JSEitherRef FileError (Entry Dir))
-getParent      :: Entry a -> IO (Either      FileError (Entry Dir))
-getParent = js_getParent >=> fromJSEitherRef
+  js_getParent :: RTypes.JSRef (Entry a) -> IO (RInternal.JSEitherRef (FileError) (Entry Dir))
+getParent :: Entry a -> IO (Either (FileError) (Entry Dir))
+getParent arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_getParent arg0' >>= RInternal.fromJSEitherRef
 
 foreign import javascript interruptible
   "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
-  js_resolveLocalFileSystemURL :: JSString -> IO (JSEitherRef FileError (Entry ()))
-resolveLocalFileSystemURL      :: String   -> IO (Either      FileError (Entry ()))
-resolveLocalFileSystemURL =
-  js_resolveLocalFileSystemURL . toJSString >=> fromJSEitherRef
+  js_resolveLocalFileSystemURL :: RTypes.JSRef (String) -> IO (RInternal.JSEitherRef (FileError) (Entry ()))
+resolveLocalFileSystemURL :: String -> IO (Either (FileError) (Entry ()))
+resolveLocalFileSystemURL arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_resolveLocalFileSystemURL arg0' >>= RInternal.fromJSEitherRef
 
 data GetFlags = Exclusive | Create | NoCreate deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "{create: true, exclusive: true}" _GetFlags_Exclusive :: RTypes.JSRef GetFlags
@@ -305,23 +319,25 @@ instance RMarshal.ToJSRef GetFlags where
 instance RMarshal.FromJSRef GetFlags where
   fromJSRef = RInternal.js_fromEnum
 
-
 foreign import javascript interruptible
   "$3.getFile($1, $2, hs_good($c), hs_error($c));"
-  js_getFile :: JSString -> JSRef GetFlags -> Entry Dir -> IO (JSEitherRef FileError (Entry File))
-getFile      :: FilePath -> GetFlags       -> Entry Dir -> IO (Either      FileError (Entry File))
-getFile f flags dir = do
-  flags' <- toJSRef flags
-  js_getFile (toJSString f) flags' dir >>= fromJSEitherRef
+  js_getFile :: RTypes.JSRef (FilePath) -> RTypes.JSRef (GetFlags) -> RTypes.JSRef (Entry Dir) -> IO (RInternal.JSEitherRef (FileError) (Entry File))
+getFile :: FilePath -> GetFlags -> Entry Dir -> IO (Either (FileError) (Entry File))
+getFile arg0 arg1 arg2 = do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  arg2' <- RMarshal.toJSRef arg2
+  js_getFile arg0' arg1' arg2' >>= RInternal.fromJSEitherRef
 
 foreign import javascript interruptible
   "$3.getDirectory($1, $2, hs_good($c), hs_error($c));"
-  js_getDirectory :: JSString -> JSRef GetFlags -> Entry Dir -> IO (JSEitherRef FileError (Entry Dir))
-getDirectory      :: FilePath -> GetFlags       -> Entry Dir -> IO (Either      FileError (Entry Dir))
-getDirectory f flags dir = do
-  flags' <- toJSRef flags
-  js_getDirectory (toJSString f) flags' dir >>= fromJSEitherRef
-
+  js_getDirectory :: RTypes.JSRef (FilePath) -> RTypes.JSRef (GetFlags) -> RTypes.JSRef (Entry Dir) -> IO (RInternal.JSEitherRef (FileError) (Entry Dir))
+getDirectory :: FilePath -> GetFlags -> Entry Dir -> IO (Either (FileError) (Entry Dir))
+getDirectory arg0 arg1 arg2 = do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  arg2' <- RMarshal.toJSRef arg2
+  js_getDirectory arg0' arg1' arg2' >>= RInternal.fromJSEitherRef
 
 data DirReader_
 type DirReader = JSRef DirReader_
@@ -332,9 +348,11 @@ foreign import javascript unsafe
 
 foreign import javascript interruptible
   "$1.readEntries(hs_good($c), hs_error($c));"
-  js_readEntries :: DirReader -> IO (JSEitherRef FileError [Entry ()])
-readEntries      :: DirReader -> IO (Either      FileError [Entry ()])
-readEntries = js_readEntries >=> fromJSEitherRef
+  js_readEntries :: RTypes.JSRef (DirReader) -> IO (RInternal.JSEitherRef (FileError) ([Entry ()]))
+readEntries :: DirReader -> IO (Either (FileError) ([Entry ()]))
+readEntries arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_readEntries arg0' >>= RInternal.fromJSEitherRef
 
 readAllEntries :: Entry Dir -> IO (Either FileError [Entry ()])
 readAllEntries dir = do
@@ -350,9 +368,11 @@ type FileObject = JSRef FileObject_
 
 foreign import javascript interruptible
   "$1.file(hs_good($c), hs_error($c));"
-  js_file :: Entry File -> IO (JSEitherRef FileError FileObject)
-file      :: Entry File -> IO (Either      FileError FileObject)
-file = js_file >=> fromJSEitherRef
+  js_file :: RTypes.JSRef (Entry File) -> IO (RInternal.JSEitherRef (FileError) (FileObject))
+file :: Entry File -> IO (Either (FileError) (FileObject))
+file arg0 = do
+  arg0' <- RMarshal.toJSRef arg0
+  js_file arg0' >>= RInternal.fromJSEitherRef
 
 
 foreign import javascript interruptible
