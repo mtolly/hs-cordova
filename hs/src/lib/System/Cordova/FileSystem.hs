@@ -15,6 +15,7 @@ module System.Cordova.FileSystem
 , remove, removeRecursively, moveTo, copyTo
 , getParent
 , resolveLocalFileSystemURL
+, GetFlags(..), getFile, getDirectory
 ) where
 
 import GHCJS.Types (JSRef)
@@ -172,6 +173,7 @@ requestFileSystem stor size = do
   res <- js_requestFileSystem stor' $ fromIntegral size
   fromJSEither res >>= bitraverse fromJSRef' return
 
+-- TODO: make FileEntry and DirectoryEntry different
 data Entry_
 type Entry = JSRef Entry_
 
@@ -232,6 +234,8 @@ foreign import javascript interruptible
 getMetadata :: Entry -> IO (Either FileError Metadata)
 getMetadata = js_getMetadata >=> fromJSEither'
 
+-- TODO: setMetadata
+
 
 foreign import javascript interruptible
   "$1.remove(hs_good($c), hs_error($c));"
@@ -281,3 +285,36 @@ foreign import javascript interruptible
 resolveLocalFileSystemURL :: String -> IO (Either FileError Entry)
 resolveLocalFileSystemURL = js_resolveLocalFileSystemURL . toJSString
   >=> fromJSEither >=> bitraverse fromJSRef' return
+
+data GetFlags = Create | Ensure | Exist deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "{create: true, exclusive: true}" _GetFlags_Create :: JSRef GetFlags
+foreign import javascript unsafe "{create: true, exclusive: false}" _GetFlags_Ensure :: JSRef GetFlags
+foreign import javascript unsafe "{create: false}" _GetFlags_Exist :: JSRef GetFlags
+instance ToJSRef GetFlags where
+  toJSRef Create = return _GetFlags_Create
+  toJSRef Ensure = return _GetFlags_Ensure
+  toJSRef Exist = return _GetFlags_Exist
+instance FromJSRef GetFlags where
+  fromJSRef = js_fromEnum
+
+
+foreign import javascript interruptible
+  "$3.getFile($1, $2, hs_good($c), hs_error($c));"
+  js_getFile :: JSString -> JSRef GetFlags -> Entry
+    -> IO (JSEither (JSRef FileError) Entry)
+getFile :: FilePath -> GetFlags -> Entry -> IO (Either FileError Entry)
+getFile f flags dir = do
+  flags' <- toJSRef flags
+  js_getFile (toJSString f) flags' dir >>= fromJSEither
+    >>= bitraverse fromJSRef' return
+
+foreign import javascript interruptible
+  "$3.getDirectory($1, $2, hs_good($c), hs_error($c));"
+  js_getDirectory :: JSString -> JSRef GetFlags -> Entry
+    -> IO (JSEither (JSRef FileError) Entry)
+getDirectory :: FilePath -> GetFlags -> Entry -> IO (Either FileError Entry)
+getDirectory f flags dir = do
+  flags' <- toJSRef flags
+  js_getDirectory (toJSString f) flags' dir >>= fromJSEither
+    >>= bitraverse fromJSRef' return
+

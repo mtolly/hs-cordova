@@ -31,6 +31,7 @@ module System.Cordova.FileSystem
 , remove, removeRecursively, moveTo, copyTo
 , getParent
 , resolveLocalFileSystemURL
+, GetFlags(..), getFile, getDirectory
 ) where
 
 import GHCJS.Types (JSRef)
@@ -89,6 +90,7 @@ requestFileSystem stor size = do
   res <- js_requestFileSystem stor' $ fromIntegral size
   fromJSEither res >>= bitraverse fromJSRef' return
 
+-- TODO: make FileEntry and DirectoryEntry different
 data Entry_
 type Entry = JSRef Entry_
 
@@ -163,3 +165,21 @@ foreign import javascript interruptible
 resolveLocalFileSystemURL :: String -> IO (Either FileError Entry)
 resolveLocalFileSystemURL = js_resolveLocalFileSystemURL . toJSString
   >=> fromJSEither >=> bitraverse fromJSRef' return
+
+<%= makeEnum('GetFlags', [
+  Tag.new('Create', '{create: true, exclusive: true}'),
+  Tag.new('Ensure', '{create: true, exclusive: false}'),
+  Tag.new('Exist', '{create: false}'),
+]) %>
+
+<% %w{getFile getDirectory}.each do |f| %>
+foreign import javascript interruptible
+  "$3.<%= f %>($1, $2, hs_good($c), hs_error($c));"
+  js_<%= f %> :: JSString -> JSRef GetFlags -> Entry
+    -> IO (JSEither (JSRef FileError) Entry)
+<%= f %> :: FilePath -> GetFlags -> Entry -> IO (Either FileError Entry)
+<%= f %> f flags dir = do
+  flags' <- toJSRef flags
+  js_<%= f %> (toJSString f) flags' dir >>= fromJSEither
+    >>= bitraverse fromJSRef' return
+<% end %>
