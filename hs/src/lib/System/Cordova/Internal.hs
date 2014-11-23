@@ -9,26 +9,30 @@ import Control.Monad (forM, guard, join)
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
-import Data.Bitraversable (bitraverse)
-
-type JSEither e a = JSRef (Either e a)
 
 fromJSRef' :: (FromJSRef a) => JSRef a -> IO a
 fromJSRef' ref = fromJSRef ref >>= \mx -> case mx of
   Nothing -> error "fromJSRef': deserialization failed"
   Just x  -> return x
 
--- | Unmarshalls [0, x] into "Right x", and [non-zero, x] into "Left x".
-fromJSEither :: JSEither (JSRef e) (JSRef a) -> IO (Either (JSRef e) (JSRef a))
-fromJSEither ary = do
-  code <- indexArray 0 $ castRef ary
-  case fromJSInt code of
-    0 -> fmap Right $ indexArray 1 $ castRef ary
-    _ -> fmap Left  $ indexArray 1 $ castRef ary
+newtype JSEither e a = JSEither { fromJSEither :: Either e a }
 
-fromJSEither' :: (FromJSRef e, FromJSRef a) =>
-  JSEither (JSRef e) (JSRef a) -> IO (Either e a)
-fromJSEither' ary = fromJSEither ary >>= bitraverse fromJSRef' fromJSRef'
+type JSEitherRef e a = JSRef (JSEither e a)
+
+instance (FromJSRef e, FromJSRef a) => FromJSRef (JSEither e a) where
+  fromJSRef ary = do
+    code <- indexArray 0 $ castRef ary
+    let element :: (FromJSRef a) => IO (Maybe a)
+        element = indexArray 1 (castRef ary) >>= fromJSRef
+    if fromJSInt code == 0
+      then element >>= \res -> return $ fmap (JSEither . Right) res
+      else element >>= \res -> return $ fmap (JSEither . Left) res
+
+fromJSEitherRef
+  :: (FromJSRef e, FromJSRef a) => JSRef (JSEither e a) -> IO (Either e a)
+fromJSEitherRef ref = fromJSRef ref >>= maybe
+  (error "fromJSEitherRef: couldn't deserialize")
+  (return . fromJSEither)
 
 js_fromEnum :: (Enum a, Bounded a, ToJSRef a) => JSRef a -> IO (Maybe a)
 js_fromEnum ref = fmap (listToMaybe . catMaybes) $

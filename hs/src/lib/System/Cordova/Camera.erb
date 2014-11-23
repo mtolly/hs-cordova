@@ -16,7 +16,6 @@ module System.Cordova.Camera
 ) where
 
 import GHCJS.Types
-import GHCJS.Foreign
 import GHCJS.Marshal
 import System.Cordova.Internal
 <%= hsImports %>
@@ -24,17 +23,17 @@ import System.Cordova.Internal
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
   js_getPicture
-  :: JSRef CameraOptions -> IO (JSEither (JSRef String) (JSRef String))
+  :: JSRef CameraOptions -> IO (JSEitherRef String String)
 
 getPicture :: CameraOptions -> IO (Either String String)
-getPicture opts = toJSRef opts >>= js_getPicture >>= fromJSEither'
+getPicture opts = toJSRef opts >>= js_getPicture >>= fromJSEitherRef
 
 foreign import javascript interruptible
   "navigator.camera.cleanup(hs_good($c), hs_error($c));"
-  js_cleanup :: IO (JSEither (JSRef String) (JSRef ()))
+  js_cleanup :: IO (JSEitherRef String ())
 
 cleanup :: IO (Either String ())
-cleanup = js_cleanup >>= fromJSEither'
+cleanup = js_cleanup >>= fromJSEitherRef
 
 <%= makeRecord('CameraOptions', [
   Field.new('Maybe Int', 'quality'),

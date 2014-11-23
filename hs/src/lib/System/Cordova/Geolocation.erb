@@ -23,11 +23,11 @@ foreign import javascript interruptible
   "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);"
   js_getCurrentPosition
   :: JSRef GeolocationOptions
-  -> IO (JSEither (JSRef PositionError) (JSRef Position))
+  -> IO (JSEitherRef PositionError Position)
 
 getCurrentPosition :: GeolocationOptions -> IO (Either PositionError Position)
 getCurrentPosition opts =
-  toJSRef opts >>= js_getCurrentPosition >>= fromJSEither'
+  toJSRef opts >>= js_getCurrentPosition >>= fromJSEitherRef
 
 <%= makeRecord('Coordinates', [
   Field.new('Maybe Double', 'latitude'),

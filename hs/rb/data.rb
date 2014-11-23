@@ -1,11 +1,11 @@
 def hsImports
 <<-EOS
-import GHCJS.Foreign
-import GHCJS.Types
-import GHCJS.Marshal
-import System.Cordova.Internal
-import Data.Default
-import Control.Applicative
+import qualified GHCJS.Types as RTypes
+import qualified GHCJS.Marshal as RMarshal
+import qualified Data.Default as RDefault
+import qualified GHCJS.Foreign as RForeign
+import qualified System.Cordova.Internal as RInternal
+import qualified Control.Applicative as RApp
 EOS
 end
 
@@ -26,17 +26,17 @@ def makeEnum(name, tags, exprPrefix = '')
   lines << "data #{name} = #{tags.map(&:nameHs).join(' | ')} deriving (Eq, Ord, Show, Read, Enum, Bounded)"
   tags.each do |tag|
     importName = "_#{name}_#{tag.nameHs}"
-    lines << "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: JSRef #{name}"
+    lines << "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: RTypes.JSRef #{name}"
   end
 
-  lines << "instance ToJSRef #{name} where"
+  lines << "instance RMarshal.ToJSRef #{name} where"
   tags.each do |tag|
     importName = "_#{name}_#{tag.nameHs}"
     lines << "  toJSRef #{tag.nameHs} = return #{importName}"
   end
 
-  lines << "instance FromJSRef #{name} where"
-  lines << "  fromJSRef = js_fromEnum"
+  lines << "instance RMarshal.FromJSRef #{name} where"
+  lines << "  fromJSRef = RInternal.js_fromEnum"
 
   lines.join("\n")
 end
@@ -58,18 +58,18 @@ def makeRecord(name, fields, default = true)
 
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
 
-  defaultExprs = [name] + Array.new(fields.length, 'def')
+  defaultExprs = [name] + Array.new(fields.length, 'RDefault.def')
   if default
-    lines << "instance Default #{name} where def = #{defaultExprs.join(' ')}"
+    lines << "instance RDefault.Default #{name} where def = #{defaultExprs.join(' ')}"
   end
 
-  lines << "instance ToJSRef #{name} where"
+  lines << "instance RMarshal.ToJSRef #{name} where"
   lines << "  toJSRef opts = do"
-  lines << "    obj <- newObj"
+  lines << "    obj <- RForeign.newObj"
   lines << "    let _setJust s f = case f opts of"
   lines << "          Nothing -> return ()"
-  lines << "          Just x -> toJSRef x >>= \\ref -> setProp s ref obj"
-  lines << "        _set s f = toJSRef (f opts) >>= \\ref -> setProp s ref obj"
+  lines << "          Just x -> RMarshal.toJSRef x >>= \\ref -> RForeign.setProp s ref obj"
+  lines << "        _set s f = RMarshal.toJSRef (f opts) >>= \\ref -> RForeign.setProp s ref obj"
   fields.each do |field|
     if field.type.start_with? 'Maybe'
       lines << "    _setJust #{field.nameJs.inspect} #{field.nameHs}"
@@ -79,15 +79,15 @@ def makeRecord(name, fields, default = true)
   end
   lines << "    return obj"
 
-  lines << "instance FromJSRef #{name} where"
+  lines << "instance RMarshal.FromJSRef #{name} where"
   lines << "  fromJSRef obj = do"
   bound = []
   fields.each_with_index do |field, i|
     thisBound = "_x#{i}"
     bound << thisBound
-    lines << "    #{thisBound} <- fromProp #{field.nameJs.inspect} obj"
+    lines << "    #{thisBound} <- RInternal.fromProp #{field.nameJs.inspect} obj"
   end
-  lines << "    return $ #{name} <$> #{bound.join(' <*> ')}"
+  lines << "    return $ #{name} RApp.<$> #{bound.join(' RApp.<*> ')}"
 
   lines.join("\n")
 end

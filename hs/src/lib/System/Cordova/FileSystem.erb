@@ -20,9 +20,9 @@ module System.Cordova.FileSystem
 ( <%= dirs.join(', ') %>
 , Storage(..)
 , FileError(..), FileErrorCode(..)
-, FileSystem_, FileSystem
+, FileSystem
 , requestFileSystem
-, Entry_, Entry
+, Entry
 , root, filesystem
 , fullPath, name
 , toURL, toInternalURL
@@ -32,25 +32,26 @@ module System.Cordova.FileSystem
 , getParent
 , resolveLocalFileSystemURL
 , GetFlags(..), getFile, getDirectory
-, DirReader_, DirReader, createReader, readEntries
+, DirReader, createReader, readEntries
 , readAllEntries
-, File_, File, file
+, File, file
 , readAsText, readAsBinaryString, readAsDataURL
 ) where
 
-import GHCJS.Types (JSRef)
+import GHCJS.Types
+import GHCJS.Foreign
+import GHCJS.Marshal
 import System.Cordova.Internal
 import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad ((>=>))
 import Data.Time.Clock
-import Data.Bitraversable (bitraverse)
 <%= hsImports %>
 
 <% dirs.each do |dir| %>
 foreign import javascript unsafe
   "cordova.file.<%= dir %>"
   js_<%= dir %> :: JSRef (Maybe String)
-<%= dir %> :: Maybe String
+<%= dir %>      :: Maybe String
 <%= dir %> = unsafePerformIO $ fromRefMaybe js_<%= dir %>
 <% end %>
 
@@ -85,14 +86,11 @@ type FileSystem = JSRef FileSystem_
 
 foreign import javascript interruptible
   "requestFileSystem($1, $2, hs_good($c), hs_error($c));"
-  js_requestFileSystem
-  :: JSRef Storage -> Double -> IO (JSEither (JSRef FileError) FileSystem)
-
-requestFileSystem :: Storage -> Integer -> IO (Either FileError FileSystem)
+  js_requestFileSystem :: JSRef Storage -> Double  -> IO (JSEitherRef FileError FileSystem)
+requestFileSystem      :: Storage       -> Integer -> IO (Either      FileError FileSystem)
 requestFileSystem stor size = do
   stor' <- toJSRef stor
-  res <- js_requestFileSystem stor' $ fromIntegral size
-  fromJSEither res >>= bitraverse fromJSRef' return
+  js_requestFileSystem stor' (fromIntegral size) >>= fromJSEitherRef
 
 -- TODO: make FileEntry and DirectoryEntry different
 data Entry_
@@ -106,15 +104,17 @@ foreign import javascript unsafe
 
 <% %w{fullPath name}.each do |f| %>
 foreign import javascript unsafe
-  "$1.<%= f %>" js_<%= f %> :: Entry -> JSString
-<%= f %> :: Entry -> FilePath
+  "$1.<%= f %>"
+  js_<%= f %> :: Entry -> JSString
+<%= f %>      :: Entry -> FilePath
 <%= f %> = fromJSString . js_<%= f %>
 <% end %>
 
 <% %w{toURL toInternalURL}.each do |f| %>
 foreign import javascript unsafe
-  "$1.<%= f %>()" js_<%= f %> :: Entry -> JSString
-<%= f %> :: Entry -> String
+  "$1.<%= f %>()"
+  js_<%= f %> :: Entry -> JSString
+<%= f %>      :: Entry -> String
 <%= f %> = fromJSString . js_<%= f %>
 <% end %>
 
@@ -130,62 +130,57 @@ foreign import javascript unsafe
 
 foreign import javascript interruptible
   "$1.getMetadata(hs_good($c), hs_error($c));"
-  js_getMetadata :: Entry -> IO (JSEither (JSRef FileError) (JSRef Metadata))
-getMetadata :: Entry -> IO (Either FileError Metadata)
-getMetadata = js_getMetadata >=> fromJSEither'
+  js_getMetadata :: Entry -> IO (JSEitherRef FileError Metadata)
+getMetadata      :: Entry -> IO (Either      FileError Metadata)
+getMetadata = js_getMetadata >=> fromJSEitherRef
 
 -- TODO: setMetadata
 
 <% %w{remove removeRecursively}.each do |f| %>
 foreign import javascript interruptible
   "$1.<%= f %>(hs_good($c), hs_error($c));"
-  js_<%= f %> :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
-<%= f %> :: Entry -> IO (Either FileError ())
-<%= f %> = js_<%= f %> >=> fromJSEither'
+  js_<%= f %> :: Entry -> IO (JSEitherRef FileError ())
+<%= f %>      :: Entry -> IO (Either      FileError ())
+<%= f %> = js_<%= f %> >=> fromJSEitherRef
 <% end %>
 
 <% %w{moveTo copyTo}.each do |f| %>
 foreign import javascript interruptible
   "$3.<%= f %>($1, $2, hs_good($c), hs_error($c));"
-  js_<%= f %>
-  :: Entry -> JSRef (Maybe String) -> Entry
-  -> IO (JSEither (JSRef FileError) Entry)
-<%= f %> :: Entry -> Maybe FilePath -> Entry -> IO (Either FileError Entry)
+  js_<%= f %> :: Entry -> JSRef (Maybe String) -> Entry -> IO (JSEitherRef FileError Entry)
+<%= f %>      :: Entry -> Maybe FilePath       -> Entry -> IO (Either      FileError Entry)
 <%= f %> dir new old = do
   new' <- toJSRef new
-  js_<%= f %> dir new' old >>= fromJSEither >>= bitraverse fromJSRef' return
+  js_<%= f %> dir new' old >>= fromJSEitherRef
 <% end %>
 
 foreign import javascript interruptible
   "$1.getParent(hs_good($c), hs_error($c));"
-  js_getParent :: Entry -> IO (JSEither (JSRef FileError) Entry)
-getParent :: Entry -> IO (Either FileError Entry)
-getParent = js_getParent >=> fromJSEither >=> bitraverse fromJSRef' return
+  js_getParent :: Entry -> IO (JSEitherRef FileError Entry)
+getParent      :: Entry -> IO (Either      FileError Entry)
+getParent = js_getParent >=> fromJSEitherRef
 
 foreign import javascript interruptible
   "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
-  js_resolveLocalFileSystemURL
-  :: JSString -> IO (JSEither (JSRef FileError) Entry)
-resolveLocalFileSystemURL :: String -> IO (Either FileError Entry)
-resolveLocalFileSystemURL = js_resolveLocalFileSystemURL . toJSString
-  >=> fromJSEither >=> bitraverse fromJSRef' return
+  js_resolveLocalFileSystemURL :: JSString -> IO (JSEitherRef FileError Entry)
+resolveLocalFileSystemURL      :: String   -> IO (Either      FileError Entry)
+resolveLocalFileSystemURL =
+  js_resolveLocalFileSystemURL . toJSString >=> fromJSEitherRef
 
 <%= makeEnum('GetFlags', [
-  Tag.new('Create', '{create: true, exclusive: true}'),
+  Tag.new('Create', '{create: true, exclusive: true}' ),
   Tag.new('Ensure', '{create: true, exclusive: false}'),
-  Tag.new('Exist', '{create: false}'),
+  Tag.new('Exist' , '{create: false}'                 ),
 ]) %>
 
 <% %w{getFile getDirectory}.each do |f| %>
 foreign import javascript interruptible
   "$3.<%= f %>($1, $2, hs_good($c), hs_error($c));"
-  js_<%= f %> :: JSString -> JSRef GetFlags -> Entry
-    -> IO (JSEither (JSRef FileError) Entry)
-<%= f %> :: FilePath -> GetFlags -> Entry -> IO (Either FileError Entry)
+  js_<%= f %> :: JSString -> JSRef GetFlags -> Entry -> IO (JSEitherRef FileError Entry)
+<%= f %>      :: FilePath -> GetFlags       -> Entry -> IO (Either      FileError Entry)
 <%= f %> f flags dir = do
   flags' <- toJSRef flags
-  js_<%= f %> (toJSString f) flags' dir >>= fromJSEither
-    >>= bitraverse fromJSRef' return
+  js_<%= f %> (toJSString f) flags' dir >>= fromJSEitherRef
 <% end %>
 
 data DirReader_
@@ -197,10 +192,9 @@ foreign import javascript unsafe
 
 foreign import javascript interruptible
   "$1.readEntries(hs_good($c), hs_error($c));"
-  js_readEntries :: DirReader -> IO (JSEither (JSRef FileError) (JSRef [Entry]))
-
-readEntries :: DirReader -> IO (Either FileError [Entry])
-readEntries = js_readEntries >=> fromJSEither'
+  js_readEntries :: DirReader -> IO (JSEitherRef FileError [Entry])
+readEntries      :: DirReader -> IO (Either      FileError [Entry])
+readEntries = js_readEntries >=> fromJSEitherRef
 
 readAllEntries :: Entry -> IO (Either FileError [Entry])
 readAllEntries dir = do
@@ -216,14 +210,14 @@ type File = JSRef File_
 
 foreign import javascript interruptible
   "$1.file(hs_good($c), hs_error($c));"
-  js_file :: Entry -> IO (JSEither (JSRef FileError) File)
-file :: Entry -> IO (Either FileError File)
-file = js_file >=> fromJSEither >=> bitraverse fromJSRef' return
+  js_file :: Entry -> IO (JSEitherRef FileError File)
+file      :: Entry -> IO (Either      FileError File)
+file = js_file >=> fromJSEitherRef
 
 <% %w{readAsText readAsBinaryString readAsDataURL}.each do |f| %>
 foreign import javascript interruptible
   "hs_readFile('<%= f %>', $1, $c);"
   js_<%= f %> :: File -> IO JSString
-<%= f %> :: File -> IO String
+<%= f %>      :: File -> IO String
 <%= f %> = fmap fromJSString . js_<%= f %>
 <% end %>
