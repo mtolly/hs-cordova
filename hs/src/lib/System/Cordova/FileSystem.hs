@@ -6,11 +6,11 @@ module System.Cordova.FileSystem
 , FileError(..), FileErrorCode(..)
 , FileSystem
 , requestFileSystem
-, Entry
+, Entry, Dir, File
 , root, filesystem
 , fullPath, name
 , toURL, toInternalURL
-, isFile, isDirectory
+, isFile, isDirectory, classifyEntry, genericEntry
 , Metadata(..), getMetadata
 , remove, removeRecursively, moveTo, copyTo
 , getParent
@@ -18,7 +18,7 @@ module System.Cordova.FileSystem
 , GetFlags(..), getFile, getDirectory
 , DirReader, createReader, readEntries
 , readAllEntries
-, File, file
+, FileObject, file
 , readAsText, readAsBinaryString, readAsDataURL
 ) where
 
@@ -175,49 +175,56 @@ requestFileSystem stor size = do
   stor' <- toJSRef stor
   js_requestFileSystem stor' (fromIntegral size) >>= fromJSEitherRef
 
--- TODO: make FileEntry and DirectoryEntry different
-data Entry_
-type Entry = JSRef Entry_
+data File
+data Dir
+data Entry_ a
+type Entry a = JSRef (Entry_ a)
 
 foreign import javascript unsafe
-  "$1.root" root :: FileSystem -> Entry
+  "$1.root" root :: FileSystem -> Entry Dir
 
 foreign import javascript unsafe
-  "$1.filesystem" filesystem :: Entry -> FileSystem
+  "$1.filesystem" filesystem :: Entry a -> FileSystem
 
 
 foreign import javascript unsafe
   "$1.fullPath"
-  js_fullPath :: Entry -> JSString
-fullPath      :: Entry -> FilePath
+  js_fullPath :: Entry a -> JSString
+fullPath      :: Entry a -> FilePath
 fullPath = fromJSString . js_fullPath
 
 foreign import javascript unsafe
   "$1.name"
-  js_name :: Entry -> JSString
-name      :: Entry -> FilePath
+  js_name :: Entry a -> JSString
+name      :: Entry a -> FilePath
 name = fromJSString . js_name
 
 
 
 foreign import javascript unsafe
   "$1.toURL()"
-  js_toURL :: Entry -> JSString
-toURL      :: Entry -> String
+  js_toURL :: Entry a -> JSString
+toURL      :: Entry a -> String
 toURL = fromJSString . js_toURL
 
 foreign import javascript unsafe
   "$1.toInternalURL()"
-  js_toInternalURL :: Entry -> JSString
-toInternalURL      :: Entry -> String
+  js_toInternalURL :: Entry a -> JSString
+toInternalURL      :: Entry a -> String
 toInternalURL = fromJSString . js_toInternalURL
 
 
 foreign import javascript unsafe
-  "$1.isFile" isFile :: Entry -> Bool
+  "$1.isFile" isFile :: Entry a -> Bool
 
 foreign import javascript unsafe
-  "$1.isDirectory" isDirectory :: Entry -> Bool
+  "$1.isDirectory" isDirectory :: Entry a -> Bool
+
+classifyEntry :: Entry a -> Either (Entry File) (Entry Dir)
+classifyEntry e = if isFile e then Left (castRef e) else Right (castRef e)
+
+genericEntry :: Entry a -> Entry ()
+genericEntry = castRef
 
 data Metadata = Metadata { modificationTime :: UTCTime } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef Metadata where
@@ -236,8 +243,8 @@ instance RMarshal.FromJSRef Metadata where
 
 foreign import javascript interruptible
   "$1.getMetadata(hs_good($c), hs_error($c));"
-  js_getMetadata :: Entry -> IO (JSEitherRef FileError Metadata)
-getMetadata      :: Entry -> IO (Either      FileError Metadata)
+  js_getMetadata :: Entry a -> IO (JSEitherRef FileError Metadata)
+getMetadata      :: Entry a -> IO (Either      FileError Metadata)
 getMetadata = js_getMetadata >=> fromJSEitherRef
 
 -- TODO: setMetadata
@@ -245,30 +252,30 @@ getMetadata = js_getMetadata >=> fromJSEitherRef
 
 foreign import javascript interruptible
   "$1.remove(hs_good($c), hs_error($c));"
-  js_remove :: Entry -> IO (JSEitherRef FileError ())
-remove      :: Entry -> IO (Either      FileError ())
+  js_remove :: Entry a -> IO (JSEitherRef FileError ())
+remove      :: Entry a -> IO (Either      FileError ())
 remove = js_remove >=> fromJSEitherRef
 
 foreign import javascript interruptible
   "$1.removeRecursively(hs_good($c), hs_error($c));"
-  js_removeRecursively :: Entry -> IO (JSEitherRef FileError ())
-removeRecursively      :: Entry -> IO (Either      FileError ())
+  js_removeRecursively :: Entry Dir -> IO (JSEitherRef FileError ())
+removeRecursively      :: Entry Dir -> IO (Either      FileError ())
 removeRecursively = js_removeRecursively >=> fromJSEitherRef
 
 
 
 foreign import javascript interruptible
   "$3.moveTo($1, $2, hs_good($c), hs_error($c));"
-  js_moveTo :: Entry -> JSRef (Maybe String) -> Entry -> IO (JSEitherRef FileError Entry)
-moveTo      :: Entry -> Maybe FilePath       -> Entry -> IO (Either      FileError Entry)
+  js_moveTo :: Entry Dir -> JSRef (Maybe String) -> Entry a -> IO (JSEitherRef FileError (Entry a))
+moveTo      :: Entry Dir -> Maybe FilePath       -> Entry a -> IO (Either      FileError (Entry a))
 moveTo dir new old = do
   new' <- toJSRef new
   js_moveTo dir new' old >>= fromJSEitherRef
 
 foreign import javascript interruptible
   "$3.copyTo($1, $2, hs_good($c), hs_error($c));"
-  js_copyTo :: Entry -> JSRef (Maybe String) -> Entry -> IO (JSEitherRef FileError Entry)
-copyTo      :: Entry -> Maybe FilePath       -> Entry -> IO (Either      FileError Entry)
+  js_copyTo :: Entry Dir -> JSRef (Maybe String) -> Entry a -> IO (JSEitherRef FileError (Entry a))
+copyTo      :: Entry Dir -> Maybe FilePath       -> Entry a -> IO (Either      FileError (Entry a))
 copyTo dir new old = do
   new' <- toJSRef new
   js_copyTo dir new' old >>= fromJSEitherRef
@@ -276,41 +283,41 @@ copyTo dir new old = do
 
 foreign import javascript interruptible
   "$1.getParent(hs_good($c), hs_error($c));"
-  js_getParent :: Entry -> IO (JSEitherRef FileError Entry)
-getParent      :: Entry -> IO (Either      FileError Entry)
+  js_getParent :: Entry a -> IO (JSEitherRef FileError (Entry Dir))
+getParent      :: Entry a -> IO (Either      FileError (Entry Dir))
 getParent = js_getParent >=> fromJSEitherRef
 
 foreign import javascript interruptible
   "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
-  js_resolveLocalFileSystemURL :: JSString -> IO (JSEitherRef FileError Entry)
-resolveLocalFileSystemURL      :: String   -> IO (Either      FileError Entry)
+  js_resolveLocalFileSystemURL :: JSString -> IO (JSEitherRef FileError (Entry ()))
+resolveLocalFileSystemURL      :: String   -> IO (Either      FileError (Entry ()))
 resolveLocalFileSystemURL =
   js_resolveLocalFileSystemURL . toJSString >=> fromJSEitherRef
 
-data GetFlags = Create | Ensure | Exist deriving (Eq, Ord, Show, Read, Enum, Bounded)
-foreign import javascript unsafe "{create: true, exclusive: true}" _GetFlags_Create :: RTypes.JSRef GetFlags
-foreign import javascript unsafe "{create: true, exclusive: false}" _GetFlags_Ensure :: RTypes.JSRef GetFlags
-foreign import javascript unsafe "{create: false}" _GetFlags_Exist :: RTypes.JSRef GetFlags
+data GetFlags = Exclusive | Create | NoCreate deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "{create: true, exclusive: true}" _GetFlags_Exclusive :: RTypes.JSRef GetFlags
+foreign import javascript unsafe "{create: true, exclusive: false}" _GetFlags_Create :: RTypes.JSRef GetFlags
+foreign import javascript unsafe "{create: false}" _GetFlags_NoCreate :: RTypes.JSRef GetFlags
 instance RMarshal.ToJSRef GetFlags where
+  toJSRef Exclusive = return _GetFlags_Exclusive
   toJSRef Create = return _GetFlags_Create
-  toJSRef Ensure = return _GetFlags_Ensure
-  toJSRef Exist = return _GetFlags_Exist
+  toJSRef NoCreate = return _GetFlags_NoCreate
 instance RMarshal.FromJSRef GetFlags where
   fromJSRef = RInternal.js_fromEnum
 
 
 foreign import javascript interruptible
   "$3.getFile($1, $2, hs_good($c), hs_error($c));"
-  js_getFile :: JSString -> JSRef GetFlags -> Entry -> IO (JSEitherRef FileError Entry)
-getFile      :: FilePath -> GetFlags       -> Entry -> IO (Either      FileError Entry)
+  js_getFile :: JSString -> JSRef GetFlags -> Entry Dir -> IO (JSEitherRef FileError (Entry File))
+getFile      :: FilePath -> GetFlags       -> Entry Dir -> IO (Either      FileError (Entry File))
 getFile f flags dir = do
   flags' <- toJSRef flags
   js_getFile (toJSString f) flags' dir >>= fromJSEitherRef
 
 foreign import javascript interruptible
   "$3.getDirectory($1, $2, hs_good($c), hs_error($c));"
-  js_getDirectory :: JSString -> JSRef GetFlags -> Entry -> IO (JSEitherRef FileError Entry)
-getDirectory      :: FilePath -> GetFlags       -> Entry -> IO (Either      FileError Entry)
+  js_getDirectory :: JSString -> JSRef GetFlags -> Entry Dir -> IO (JSEitherRef FileError (Entry Dir))
+getDirectory      :: FilePath -> GetFlags       -> Entry Dir -> IO (Either      FileError (Entry Dir))
 getDirectory f flags dir = do
   flags' <- toJSRef flags
   js_getDirectory (toJSString f) flags' dir >>= fromJSEitherRef
@@ -321,15 +328,15 @@ type DirReader = JSRef DirReader_
 
 foreign import javascript unsafe
   "$1.createReader()"
-  createReader :: Entry -> IO DirReader
+  createReader :: Entry Dir -> IO DirReader
 
 foreign import javascript interruptible
   "$1.readEntries(hs_good($c), hs_error($c));"
-  js_readEntries :: DirReader -> IO (JSEitherRef FileError [Entry])
-readEntries      :: DirReader -> IO (Either      FileError [Entry])
+  js_readEntries :: DirReader -> IO (JSEitherRef FileError [Entry ()])
+readEntries      :: DirReader -> IO (Either      FileError [Entry ()])
 readEntries = js_readEntries >=> fromJSEitherRef
 
-readAllEntries :: Entry -> IO (Either FileError [Entry])
+readAllEntries :: Entry Dir -> IO (Either FileError [Entry ()])
 readAllEntries dir = do
   r <- createReader dir
   let go ents = readEntries r >>= \res -> case res of
@@ -338,31 +345,31 @@ readAllEntries dir = do
         Right ents' -> go $ ents' ++ ents
   go []
 
-data File_
-type File = JSRef File_
+data FileObject_
+type FileObject = JSRef FileObject_
 
 foreign import javascript interruptible
   "$1.file(hs_good($c), hs_error($c));"
-  js_file :: Entry -> IO (JSEitherRef FileError File)
-file      :: Entry -> IO (Either      FileError File)
+  js_file :: Entry File -> IO (JSEitherRef FileError FileObject)
+file      :: Entry File -> IO (Either      FileError FileObject)
 file = js_file >=> fromJSEitherRef
 
 
 foreign import javascript interruptible
   "hs_readFile('readAsText', $1, $c);"
-  js_readAsText :: File -> IO JSString
-readAsText      :: File -> IO String
+  js_readAsText :: FileObject -> IO JSString
+readAsText      :: FileObject -> IO String
 readAsText = fmap fromJSString . js_readAsText
 
 foreign import javascript interruptible
   "hs_readFile('readAsBinaryString', $1, $c);"
-  js_readAsBinaryString :: File -> IO JSString
-readAsBinaryString      :: File -> IO String
+  js_readAsBinaryString :: FileObject -> IO JSString
+readAsBinaryString      :: FileObject -> IO String
 readAsBinaryString = fmap fromJSString . js_readAsBinaryString
 
 foreign import javascript interruptible
   "hs_readFile('readAsDataURL', $1, $c);"
-  js_readAsDataURL :: File -> IO JSString
-readAsDataURL      :: File -> IO String
+  js_readAsDataURL :: FileObject -> IO JSString
+readAsDataURL      :: FileObject -> IO String
 readAsDataURL = fmap fromJSString . js_readAsDataURL
 
