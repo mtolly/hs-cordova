@@ -8,10 +8,13 @@ module System.Cordova.FileSystem
 , requestFileSystem
 , Entry_, Entry
 , root, filesystem
-, fullPath, name, isFile, isDirectory
+, fullPath, name
+, toURL, toInternalURL
+, isFile, isDirectory
 , Metadata(..), getMetadata
-, remove, moveTo, copyTo
+, remove, removeRecursively, moveTo, copyTo
 , getParent
+, resolveLocalFileSystemURL
 ) where
 
 import GHCJS.Types (JSRef)
@@ -28,51 +31,76 @@ import Data.Default
 import Control.Applicative
 
 
-foreign import javascript unsafe "cordova.file.applicationDirectory" js_applicationDirectory :: JSRef (Maybe String)
+
+foreign import javascript unsafe
+  "cordova.file.applicationDirectory"
+  js_applicationDirectory :: JSRef (Maybe String)
 applicationDirectory :: Maybe String
 applicationDirectory = unsafePerformIO $ fromRefMaybe js_applicationDirectory
 
-foreign import javascript unsafe "cordova.file.applicationStorageDirectory" js_applicationStorageDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.applicationStorageDirectory"
+  js_applicationStorageDirectory :: JSRef (Maybe String)
 applicationStorageDirectory :: Maybe String
 applicationStorageDirectory = unsafePerformIO $ fromRefMaybe js_applicationStorageDirectory
 
-foreign import javascript unsafe "cordova.file.dataDirectory" js_dataDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.dataDirectory"
+  js_dataDirectory :: JSRef (Maybe String)
 dataDirectory :: Maybe String
 dataDirectory = unsafePerformIO $ fromRefMaybe js_dataDirectory
 
-foreign import javascript unsafe "cordova.file.cacheDirectory" js_cacheDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.cacheDirectory"
+  js_cacheDirectory :: JSRef (Maybe String)
 cacheDirectory :: Maybe String
 cacheDirectory = unsafePerformIO $ fromRefMaybe js_cacheDirectory
 
-foreign import javascript unsafe "cordova.file.externalApplicationStorageDirectory" js_externalApplicationStorageDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.externalApplicationStorageDirectory"
+  js_externalApplicationStorageDirectory :: JSRef (Maybe String)
 externalApplicationStorageDirectory :: Maybe String
 externalApplicationStorageDirectory = unsafePerformIO $ fromRefMaybe js_externalApplicationStorageDirectory
 
-foreign import javascript unsafe "cordova.file.externalDataDirectory" js_externalDataDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.externalDataDirectory"
+  js_externalDataDirectory :: JSRef (Maybe String)
 externalDataDirectory :: Maybe String
 externalDataDirectory = unsafePerformIO $ fromRefMaybe js_externalDataDirectory
 
-foreign import javascript unsafe "cordova.file.externalCacheDirectory" js_externalCacheDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.externalCacheDirectory"
+  js_externalCacheDirectory :: JSRef (Maybe String)
 externalCacheDirectory :: Maybe String
 externalCacheDirectory = unsafePerformIO $ fromRefMaybe js_externalCacheDirectory
 
-foreign import javascript unsafe "cordova.file.externalRootDirectory" js_externalRootDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.externalRootDirectory"
+  js_externalRootDirectory :: JSRef (Maybe String)
 externalRootDirectory :: Maybe String
 externalRootDirectory = unsafePerformIO $ fromRefMaybe js_externalRootDirectory
 
-foreign import javascript unsafe "cordova.file.tempDirectory" js_tempDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.tempDirectory"
+  js_tempDirectory :: JSRef (Maybe String)
 tempDirectory :: Maybe String
 tempDirectory = unsafePerformIO $ fromRefMaybe js_tempDirectory
 
-foreign import javascript unsafe "cordova.file.syncedDataDirectory" js_syncedDataDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.syncedDataDirectory"
+  js_syncedDataDirectory :: JSRef (Maybe String)
 syncedDataDirectory :: Maybe String
 syncedDataDirectory = unsafePerformIO $ fromRefMaybe js_syncedDataDirectory
 
-foreign import javascript unsafe "cordova.file.documentsDirectory" js_documentsDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.documentsDirectory"
+  js_documentsDirectory :: JSRef (Maybe String)
 documentsDirectory :: Maybe String
 documentsDirectory = unsafePerformIO $ fromRefMaybe js_documentsDirectory
 
-foreign import javascript unsafe "cordova.file.sharedDirectory" js_sharedDirectory :: JSRef (Maybe String)
+foreign import javascript unsafe
+  "cordova.file.sharedDirectory"
+  js_sharedDirectory :: JSRef (Maybe String)
 sharedDirectory :: Maybe String
 sharedDirectory = unsafePerformIO $ fromRefMaybe js_sharedDirectory
 
@@ -153,6 +181,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.filesystem" filesystem :: Entry -> FileSystem
 
+
 foreign import javascript unsafe
   "$1.fullPath" js_fullPath :: Entry -> JSString
 fullPath :: Entry -> FilePath
@@ -162,6 +191,19 @@ foreign import javascript unsafe
   "$1.name" js_name :: Entry -> JSString
 name :: Entry -> FilePath
 name = fromJSString . js_name
+
+
+
+foreign import javascript unsafe
+  "$1.toURL()" js_toURL :: Entry -> JSString
+toURL :: Entry -> String
+toURL = fromJSString . js_toURL
+
+foreign import javascript unsafe
+  "$1.toInternalURL()" js_toInternalURL :: Entry -> JSString
+toInternalURL :: Entry -> String
+toInternalURL = fromJSString . js_toInternalURL
+
 
 foreign import javascript unsafe
   "$1.isFile" isFile :: Entry -> Bool
@@ -190,11 +232,19 @@ foreign import javascript interruptible
 getMetadata :: Entry -> IO (Either FileError Metadata)
 getMetadata = js_getMetadata >=> fromJSEither'
 
+
 foreign import javascript interruptible
   "$1.remove(hs_good($c), hs_error($c));"
   js_remove :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
 remove :: Entry -> IO (Either FileError ())
 remove = js_remove >=> fromJSEither'
+
+foreign import javascript interruptible
+  "$1.removeRecursively(hs_good($c), hs_error($c));"
+  js_removeRecursively :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
+removeRecursively :: Entry -> IO (Either FileError ())
+removeRecursively = js_removeRecursively >=> fromJSEither'
+
 
 
 foreign import javascript interruptible
@@ -223,3 +273,11 @@ foreign import javascript interruptible
   js_getParent :: Entry -> IO (JSEither (JSRef FileError) Entry)
 getParent :: Entry -> IO (Either FileError Entry)
 getParent = js_getParent >=> fromJSEither >=> bitraverse fromJSRef' return
+
+foreign import javascript interruptible
+  "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
+  js_resolveLocalFileSystemURL
+  :: JSString -> IO (JSEither (JSRef FileError) Entry)
+resolveLocalFileSystemURL :: String -> IO (Either FileError Entry)
+resolveLocalFileSystemURL = js_resolveLocalFileSystemURL . toJSString
+  >=> fromJSEither >=> bitraverse fromJSRef' return

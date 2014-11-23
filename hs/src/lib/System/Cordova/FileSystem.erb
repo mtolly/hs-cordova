@@ -24,10 +24,13 @@ module System.Cordova.FileSystem
 , requestFileSystem
 , Entry_, Entry
 , root, filesystem
-, fullPath, name, isFile, isDirectory
+, fullPath, name
+, toURL, toInternalURL
+, isFile, isDirectory
 , Metadata(..), getMetadata
-, remove, moveTo, copyTo
+, remove, removeRecursively, moveTo, copyTo
 , getParent
+, resolveLocalFileSystemURL
 ) where
 
 import GHCJS.Types (JSRef)
@@ -38,16 +41,13 @@ import Data.Time.Clock
 import Data.Bitraversable (bitraverse)
 <%= hsImports %>
 
-<%=
-lines = []
-dirs.each do |dir|
-  lines << "foreign import javascript unsafe \"cordova.file.#{dir}\" js_#{dir} :: JSRef (Maybe String)"
-  lines << "#{dir} :: Maybe String"
-  lines << "#{dir} = unsafePerformIO $ fromRefMaybe js_#{dir}"
-  lines << ''
-end
-lines.join("\n")
-%>
+<% dirs.each do |dir| %>
+foreign import javascript unsafe
+  "cordova.file.<%= dir %>"
+  js_<%= dir %> :: JSRef (Maybe String)
+<%= dir %> :: Maybe String
+<%= dir %> = unsafePerformIO $ fromRefMaybe js_<%= dir %>
+<% end %>
 
 <%= makeEnum('FileErrorCode', %w{
   NOT_FOUND_ERR
@@ -98,15 +98,19 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.filesystem" filesystem :: Entry -> FileSystem
 
+<% %w{fullPath name}.each do |f| %>
 foreign import javascript unsafe
-  "$1.fullPath" js_fullPath :: Entry -> JSString
-fullPath :: Entry -> FilePath
-fullPath = fromJSString . js_fullPath
+  "$1.<%= f %>" js_<%= f %> :: Entry -> JSString
+<%= f %> :: Entry -> FilePath
+<%= f %> = fromJSString . js_<%= f %>
+<% end %>
 
+<% %w{toURL toInternalURL}.each do |f| %>
 foreign import javascript unsafe
-  "$1.name" js_name :: Entry -> JSString
-name :: Entry -> FilePath
-name = fromJSString . js_name
+  "$1.<%= f %>()" js_<%= f %> :: Entry -> JSString
+<%= f %> :: Entry -> String
+<%= f %> = fromJSString . js_<%= f %>
+<% end %>
 
 foreign import javascript unsafe
   "$1.isFile" isFile :: Entry -> Bool
@@ -124,11 +128,15 @@ foreign import javascript interruptible
 getMetadata :: Entry -> IO (Either FileError Metadata)
 getMetadata = js_getMetadata >=> fromJSEither'
 
+-- TODO: setMetadata
+
+<% %w{remove removeRecursively}.each do |f| %>
 foreign import javascript interruptible
-  "$1.remove(hs_good($c), hs_error($c));"
-  js_remove :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
-remove :: Entry -> IO (Either FileError ())
-remove = js_remove >=> fromJSEither'
+  "$1.<%= f %>(hs_good($c), hs_error($c));"
+  js_<%= f %> :: Entry -> IO (JSEither (JSRef FileError) (JSRef ()))
+<%= f %> :: Entry -> IO (Either FileError ())
+<%= f %> = js_<%= f %> >=> fromJSEither'
+<% end %>
 
 <% %w{moveTo copyTo}.each do |f| %>
 foreign import javascript interruptible
@@ -147,3 +155,11 @@ foreign import javascript interruptible
   js_getParent :: Entry -> IO (JSEither (JSRef FileError) Entry)
 getParent :: Entry -> IO (Either FileError Entry)
 getParent = js_getParent >=> fromJSEither >=> bitraverse fromJSRef' return
+
+foreign import javascript interruptible
+  "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
+  js_resolveLocalFileSystemURL
+  :: JSString -> IO (JSEither (JSRef FileError) Entry)
+resolveLocalFileSystemURL :: String -> IO (Either FileError Entry)
+resolveLocalFileSystemURL = js_resolveLocalFileSystemURL . toJSString
+  >=> fromJSEither >=> bitraverse fromJSRef' return
