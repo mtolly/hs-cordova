@@ -18,6 +18,8 @@ module System.Cordova.FileSystem
 , GetFlags(..), getFile, getDirectory
 , DirReader_, DirReader, createReader, readEntries
 , readAllEntries
+, File_, File, file
+, readAsText, readAsBinaryString, readAsDataURL
 ) where
 
 import GHCJS.Types (JSRef)
@@ -343,3 +345,32 @@ readAllEntries dir = do
         Right [] -> return $ Right ents
         Right ents' -> go $ ents' ++ ents
   go []
+
+data File_
+type File = JSRef File_
+
+foreign import javascript interruptible
+  "$1.file(hs_good($c), hs_error($c));"
+  js_file :: Entry -> IO (JSEither (JSRef FileError) File)
+file :: Entry -> IO (Either FileError File)
+file = js_file >=> fromJSEither >=> bitraverse fromJSRef' return
+
+
+foreign import javascript interruptible
+  "hs_readFile('readAsText', $1, $c);"
+  js_readAsText :: File -> IO JSString
+readAsText :: File -> IO String
+readAsText = fmap fromJSString . js_readAsText
+
+foreign import javascript interruptible
+  "hs_readFile('readAsBinaryString', $1, $c);"
+  js_readAsBinaryString :: File -> IO JSString
+readAsBinaryString :: File -> IO String
+readAsBinaryString = fmap fromJSString . js_readAsBinaryString
+
+foreign import javascript interruptible
+  "hs_readFile('readAsDataURL', $1, $c);"
+  js_readAsDataURL :: File -> IO JSString
+readAsDataURL :: File -> IO String
+readAsDataURL = fmap fromJSString . js_readAsDataURL
+

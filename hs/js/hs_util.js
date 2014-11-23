@@ -60,3 +60,13 @@ function hs_deep_equal(a, b) {
     // are considered equivalent
     return true;
 }
+
+// File reading
+
+function hs_readFile(fn, file, callback) {
+  var reader = new FileReader();
+  reader.onloadend = function (e) {
+    callback(this.result);
+  }
+  reader[fn](file);
+}
