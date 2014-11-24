@@ -19,12 +19,13 @@ module System.Cordova.FileSystem
 , DirReader, createReader, readEntries
 , readAllEntries
 , FileObject, file
-, readAsText, readAsBinaryString, readAsDataURL
+, readAsText, readAsBinaryString, readAsDataURL, readAsBinary
 ) where
 
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
+import qualified Data.ByteString.Char8 as B8
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified GHCJS.Foreign as RForeign
@@ -372,8 +373,6 @@ instance RMarshal.ToJSRef GetFlags where
   toJSRef Exclusive = return _GetFlags_Exclusive
   toJSRef Create = return _GetFlags_Create
   toJSRef NoCreate = return _GetFlags_NoCreate
-instance RMarshal.FromJSRef GetFlags where
-  fromJSRef = RInternal.js_fromEnum
 
 foreign import javascript interruptible
   "$3.getFile($1, $2, hs_good($c), hs_error($c));"
@@ -467,3 +466,7 @@ readAsDataURL arg0 =  do
   res <- js_readAsDataURL arg0'
   RInternal.fromJSRef' res
 
+
+-- TODO: better implementation
+readAsBinary :: FileObject -> IO B8.ByteString
+readAsBinary = fmap B8.pack . readAsBinaryString

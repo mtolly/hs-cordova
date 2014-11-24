@@ -18,7 +18,7 @@ class Tag
   attr_reader :nameHs, :exprJs
 end
 
-def makeEnum(name, tags, exprPrefix = '')
+def makeEnum(name, tags, exprPrefix = '', fromInstance = true)
   tags = tags.map do |t|
     t.is_a?(String) ? Tag.new(t) : t
   end
@@ -36,8 +36,10 @@ def makeEnum(name, tags, exprPrefix = '')
     lines << "  toJSRef #{tag.nameHs} = return #{importName}"
   end
 
-  lines << "instance RMarshal.FromJSRef #{name} where"
-  lines << "  fromJSRef = RInternal.js_fromEnum"
+  if fromInstance
+    lines << "instance RMarshal.FromJSRef #{name} where"
+    lines << "  fromJSRef = RInternal.js_fromEnum"
+  end
 
   lines.join("\n")
 end

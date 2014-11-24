@@ -38,12 +38,7 @@ js_fromEnum :: (Enum a, Bounded a, ToJSRef a) => JSRef a -> IO (Maybe a)
 js_fromEnum ref = fmap (listToMaybe . catMaybes) $
   forM [minBound .. maxBound] $ \x -> do
     xref <- toJSRef x
-    b <- hs_deep_equal ref xref
-    return $ guard b >> Just x
-
-foreign import javascript unsafe
-  "hs_deep_equal"
-  hs_deep_equal :: JSRef a -> JSRef a -> IO Bool
+    return $ guard (eqRef ref xref) >> Just x
 
 fromProp :: (FromJSRef b) => String -> JSRef a -> IO (Maybe b)
 fromProp k obj = getProp k obj >>= fromJSRef

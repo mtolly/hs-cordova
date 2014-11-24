@@ -25,6 +25,7 @@ library
     , ghcjs-prim == 0.1.0.0
     , data-default == 0.5.3
     , time
+    , bytestring
   hs-source-dirs:       src/lib
   default-language:     Haskell2010
   ghc-options:          -Wall
