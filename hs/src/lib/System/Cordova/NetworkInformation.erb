@@ -8,18 +8,10 @@ module System.Cordova.NetworkInformation
 , onlineEvent
 ) where
 
-import GHCJS.Types
-import GHCJS.Marshal
-import Data.Maybe (fromMaybe)
 import System.Cordova.EventListener
 <%= hsImports %>
 
-foreign import javascript unsafe
-  "navigator.connection.type"
-  js_connectionType :: IO (JSRef Connection)
-
-connectionType :: IO Connection
-connectionType = js_connectionType >>= fmap (fromMaybe Unknown) . fromJSRef
+<%= jsImport('connectionType', 'navigator.connection.type', [], 'Connection') %>
 
 <%= makeEnum('Connection', [
   'Unknown',

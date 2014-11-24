@@ -1,0 +1,35 @@
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
+%>
+{-# LANGUAGE JavaScriptFFI #-}
+module System.Cordova.Dialogs
+( alert
+, confirm
+, PromptResult(..)
+, prompt
+, beep
+) where
+
+<%= hsImports %>
+
+<%= jsImport(nil,
+  "navigator.notification.alert($1, $c, $2, $3);",
+  ['String', 'Maybe String', 'Maybe String'], 'Int',
+) %>
+
+<%= jsImport(nil,
+  "navigator.notification.confirm($1, $c, $2, $3);",
+  ['String', 'Maybe String', 'Maybe [String]'], 'Int',
+) %>
+
+<%= makeRecord('PromptResult', [
+  Field.new('Int', 'buttonIndex'),
+  Field.new('String', 'input1'),
+], false) %>
+
+<%= jsImport(nil,
+  "navigator.notification.prompt($1, $c, $2, $3, $4);",
+  ['String', 'Maybe String', 'Maybe [String]', 'Maybe String'], 'PromptResult',
+) %>
+
+<%= jsImport(nil, "navigator.notification.beep($1);", ['Int'], '()') %>

@@ -13,7 +13,6 @@ module System.Cordova.Camera
 , cleanup
 ) where
 
-import GHCJS.Marshal
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
@@ -24,18 +23,20 @@ import qualified Control.Applicative as RApp
 
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
-  js_getPicture :: RTypes.JSRef (CameraOptions) -> IO (RInternal.JSEitherRef (String) (String))
-getPicture :: CameraOptions -> IO (Either (String) (String))
-getPicture arg0 = do
+  js_getPicture :: RTypes.JSRef (CameraOptions) -> IO (RInternal.JSEitherRef String String)
+getPicture :: CameraOptions -> IO (Either String String)
+getPicture arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
-  js_getPicture arg0' >>= RInternal.fromJSEitherRef
+  res <- js_getPicture arg0'
+  RInternal.fromJSEitherRef res
 
 foreign import javascript interruptible
   "navigator.camera.cleanup(hs_good($c), hs_error($c));"
-  js_cleanup ::  IO (RInternal.JSEitherRef (String) (()))
-cleanup ::  IO (Either (String) (()))
-cleanup  = do
-  js_cleanup  >>= RInternal.fromJSEitherRef
+  js_cleanup ::  IO (RInternal.JSEitherRef String ())
+cleanup ::  IO (Either String ())
+cleanup  =  do
+  res <- js_cleanup 
+  RInternal.fromJSEitherRef res
 
 data CameraOptions = CameraOptions { quality :: Maybe Int, destinationType :: Maybe DestinationType, sourceType :: Maybe SourceType, allowEdit :: Maybe Bool, encodingType :: Maybe EncodingType, targetWidth :: Maybe Int, targetHeight :: Maybe Int, mediaType :: Maybe MediaType, correctOrientation :: Maybe Bool, saveToPhotoAlbum :: Maybe Bool, popoverOptions :: Maybe PopoverOptions, cameraDirection :: Maybe Direction } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default CameraOptions where def = CameraOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def

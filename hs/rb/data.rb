@@ -6,6 +6,7 @@ import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified System.IO.Unsafe as RUnsafe
 EOS
 end
 
@@ -92,7 +93,9 @@ def makeRecord(name, fields, default = true)
   lines.join("\n")
 end
 
-def twoCallbacks(hsName, jsExpr, args, resError, resGood)
+def jsImport(hsName, jsExpr, args, result, isIO = true)
+  isEither   = result =~ /\bEither\b/
+  isCallback = jsExpr.include? '$c'
   unless hsName
     idents = jsExpr.scan /[A-Za-z_][A-Za-z0-9_]*/
     idents.reject! { |id| %w{hs_good hs_error c}.include? id }
@@ -101,18 +104,28 @@ def twoCallbacks(hsName, jsExpr, args, resError, resGood)
   argsJs = args.map { |arg| "RTypes.JSRef (#{arg}) ->" }.join(' ')
   argsHs = args.map { |arg| "#{arg} ->"         }.join(' ')
   vals = (0 ... args.length).map { |i| "arg#{i}" }
-
   lines = []
-  lines << "foreign import javascript interruptible"
-  lines << "  #{jsExpr.inspect}"
-  lines << "  js_#{hsName} :: #{argsJs} IO (RInternal.JSEitherRef (#{resError}) (#{resGood}))"
-  lines << "#{hsName} :: #{argsHs} IO (Either (#{resError}) (#{resGood}))"
 
-  lines << "#{hsName} #{vals.join(' ')} = do"
+  lines << "foreign import javascript #{isCallback ? 'interruptible' : 'unsafe'}"
+  lines << "  #{jsExpr.inspect}"
+  if isEither
+    resultJs = result.gsub(/\bEither\b/, 'RInternal.JSEitherRef')
+  else
+    resultJs = "RTypes.JSRef (#{result})"
+  end
+  lines << "  js_#{hsName} :: #{argsJs} IO (#{resultJs})"
+
+  lines << "#{hsName} :: #{argsHs} #{isIO ? 'IO' : ''} (#{result})"
+  lines << "#{hsName} #{vals.join(' ')} = #{isIO ? '' : 'RUnsafe.unsafePerformIO $'} do"
   vals.each do |val|
     lines << "  #{val}' <- RMarshal.toJSRef #{val}"
   end
-  lines << "  js_#{hsName} #{vals.map { |v| "#{v}'" }.join(' ')} >>= RInternal.fromJSEitherRef"
+  lines << "  res <- js_#{hsName} #{vals.map { |v| "#{v}'" }.join(' ')}"
+  if isEither
+    lines << "  RInternal.fromJSEitherRef res"
+  else
+    lines << "  RInternal.fromJSRef' res"
+  end
 
   lines.join("\n")
 end

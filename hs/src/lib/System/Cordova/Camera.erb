@@ -15,17 +15,16 @@ module System.Cordova.Camera
 , cleanup
 ) where
 
-import GHCJS.Marshal
 <%= hsImports %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
-  ['CameraOptions'], 'String', 'String',
+  ['CameraOptions'], 'Either String String',
 ) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   'navigator.camera.cleanup(hs_good($c), hs_error($c));',
-  [], 'String', '()',
+  [], 'Either String ()',
 ) %>
 
 <%= makeRecord('CameraOptions', [

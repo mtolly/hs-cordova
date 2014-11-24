@@ -6,24 +6,19 @@ module System.Cordova.NetworkInformation
 , onlineEvent
 ) where
 
-import GHCJS.Types
-import GHCJS.Marshal
-import Data.Maybe (fromMaybe)
 import System.Cordova.EventListener
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
-import qualified Data.Default as RDefault
-import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
-import qualified Control.Applicative as RApp
 
 
 foreign import javascript unsafe
   "navigator.connection.type"
-  js_connectionType :: IO (JSRef Connection)
-
-connectionType :: IO Connection
-connectionType = js_connectionType >>= fmap (fromMaybe Unknown) . fromJSRef
+  js_connectionType ::  IO (RTypes.JSRef (Connection))
+connectionType ::  IO (Connection)
+connectionType  =  do
+  res <- js_connectionType 
+  RInternal.fromJSRef' res
 
 data Connection = Unknown | Ethernet | Wifi | Cell2G | Cell3G | Cell4G | Cell | None deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Connection.UNKNOWN" _Connection_Unknown :: RTypes.JSRef Connection

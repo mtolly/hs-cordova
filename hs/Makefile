@@ -4,7 +4,7 @@ hs_files := $(erb_files:%.erb=%.hs)
 erb: $(hs_files)
 
 %.hs: %.erb
-	erb $< > $@
+	erb $< | rb/clean_imports.rb > $@
 
 clean:
 	rm -f $(hs_files)

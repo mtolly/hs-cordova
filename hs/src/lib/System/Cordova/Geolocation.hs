@@ -25,11 +25,12 @@ import qualified Control.Applicative as RApp
 
 foreign import javascript interruptible
   "navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);"
-  js_getCurrentPosition :: RTypes.JSRef (GeolocationOptions) -> IO (RInternal.JSEitherRef (PositionError) (Position))
-getCurrentPosition :: GeolocationOptions -> IO (Either (PositionError) (Position))
-getCurrentPosition arg0 = do
+  js_getCurrentPosition :: RTypes.JSRef (GeolocationOptions) -> IO (RInternal.JSEitherRef PositionError Position)
+getCurrentPosition :: GeolocationOptions -> IO (Either PositionError Position)
+getCurrentPosition arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
-  js_getCurrentPosition arg0' >>= RInternal.fromJSEitherRef
+  res <- js_getCurrentPosition arg0'
+  RInternal.fromJSEitherRef res
 
 data Coordinates = Coordinates { latitude :: Maybe Double, longitude :: Maybe Double, altitude :: Maybe Double, accuracy :: Maybe Double, altitudeAccuracy :: Maybe Double, heading :: Maybe Double, speed :: Maybe Double } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default Coordinates where def = Coordinates RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def

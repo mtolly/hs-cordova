@@ -39,19 +39,15 @@ module System.Cordova.FileSystem
 ) where
 
 import GHCJS.Types
-import GHCJS.Foreign
 import GHCJS.Marshal
-import System.Cordova.Internal
-import System.IO.Unsafe (unsafePerformIO)
 import Data.Time.Clock
 <%= hsImports %>
 
 <% dirs.each do |dir| %>
-foreign import javascript unsafe
-  "cordova.file.<%= dir %>"
-  js_<%= dir %> :: JSRef (Maybe String)
-<%= dir %>      :: Maybe String
-<%= dir %> = unsafePerformIO $ fromRefMaybe js_<%= dir %>
+<%= jsImport(nil,
+  "cordova.file.#{dir}",
+  [], 'Maybe String', false
+) %>
 <% end %>
 
 <%= makeEnum('FileErrorCode', %w{
@@ -83,9 +79,9 @@ end, 'FileError.') %>
 data FileSystem_
 type FileSystem = JSRef FileSystem_
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   'requestFileSystem($1, $2, hs_good($c), hs_error($c));',
-  ['Storage', 'Integer'], 'FileError', 'FileSystem',
+  ['Storage', 'Integer'], 'Either FileError FileSystem',
 ) %>
 
 data File
@@ -93,33 +89,16 @@ data Dir
 data Entry_ a
 type Entry a = JSRef (Entry_ a)
 
-foreign import javascript unsafe
-  "$1.root" root :: FileSystem -> Entry Dir
+<%= jsImport(nil, '$1.root'      , ['FileSystem'], 'Entry Dir' , false) %>
+<%= jsImport(nil, '$1.filesystem', ['Entry a'   ], 'FileSystem', false) %>
 
-foreign import javascript unsafe
-  "$1.filesystem" filesystem :: Entry a -> FileSystem
+<%= jsImport(nil, "$1.fullPath"       , ['Entry a'], 'FilePath', false) %>
+<%= jsImport(nil, "$1.name"           , ['Entry a'], 'FilePath', false) %>
+<%= jsImport(nil, "$1.toURL()"        , ['Entry a'], 'String'  , false) %>
+<%= jsImport(nil, "$1.toInternalURL()", ['Entry a'], 'String'  , false) %>
 
-<% %w{fullPath name}.each do |f| %>
-foreign import javascript unsafe
-  "$1.<%= f %>"
-  js_<%= f %> :: Entry a -> JSString
-<%= f %>      :: Entry a -> FilePath
-<%= f %> = fromJSString . js_<%= f %>
-<% end %>
-
-<% %w{toURL toInternalURL}.each do |f| %>
-foreign import javascript unsafe
-  "$1.<%= f %>()"
-  js_<%= f %> :: Entry a -> JSString
-<%= f %>      :: Entry a -> String
-<%= f %> = fromJSString . js_<%= f %>
-<% end %>
-
-foreign import javascript unsafe
-  "$1.isFile" isFile :: Entry a -> Bool
-
-foreign import javascript unsafe
-  "$1.isDirectory" isDirectory :: Entry a -> Bool
+<%= jsImport(nil, '$1.isFile'     , ['Entry a'], 'Bool', false) %>
+<%= jsImport(nil, '$1.isDirectory', ['Entry a'], 'Bool', false) %>
 
 classifyEntry :: Entry a -> Either (Entry File) (Entry Dir)
 classifyEntry e
@@ -134,38 +113,38 @@ genericEntry = castRef
   Field.new('UTCTime', 'modificationTime'),
 ], false) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.getMetadata(hs_good($c), hs_error($c));',
-  ['Entry a'], 'FileError', 'Metadata',
+  ['Entry a'], 'Either FileError Metadata',
 ) %>
 
 -- TODO: setMetadata
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.remove(hs_good($c), hs_error($c));',
-  ['Entry a'], 'FileError', '()',
+  ['Entry a'], 'Either FileError ()',
 ) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.removeRecursively(hs_good($c), hs_error($c));',
-  ['Entry Dir'], 'FileError', '()',
+  ['Entry Dir'], 'Either FileError ()',
 ) %>
 
 <% %w{moveTo copyTo}.each do |f| %>
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   "$1.#{f}(hs_good($c), hs_error($c));",
-  ['Entry Dir', 'Maybe FilePath', 'Entry a'], 'FileError', 'Entry a',
+  ['Entry Dir', 'Maybe FilePath', 'Entry a'], 'Either FileError (Entry a)',
 ) %>
 <% end %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.getParent(hs_good($c), hs_error($c));',
-  ['Entry a'], 'FileError', 'Entry Dir',
+  ['Entry a'], 'Either FileError (Entry Dir)',
 ) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   'resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));',
-  ['String'], 'FileError', 'Entry ()',
+  ['String'], 'Either FileError (Entry ())',
 ) %>
 
 <%= makeEnum('GetFlags', [
@@ -174,26 +153,24 @@ genericEntry = castRef
   Tag.new('NoCreate' , '{create: false}'                 ),
 ]) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$3.getFile($1, $2, hs_good($c), hs_error($c));',
-  ['FilePath', 'GetFlags', 'Entry Dir'], 'FileError', 'Entry File',
+  ['FilePath', 'GetFlags', 'Entry Dir'], 'Either FileError (Entry File)',
 ) %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$3.getDirectory($1, $2, hs_good($c), hs_error($c));',
-  ['FilePath', 'GetFlags', 'Entry Dir'], 'FileError', 'Entry Dir',
+  ['FilePath', 'GetFlags', 'Entry Dir'], 'Either FileError (Entry Dir)',
 ) %>
 
 data DirReader_
 type DirReader = JSRef DirReader_
 
-foreign import javascript unsafe
-  "$1.createReader()"
-  createReader :: Entry Dir -> IO DirReader
+<%= jsImport(nil, '$1.createReader()', ['Entry Dir'], 'DirReader') %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.readEntries(hs_good($c), hs_error($c));',
-  ['DirReader'], 'FileError', '[Entry ()]',
+  ['DirReader'], 'Either FileError [Entry ()]',
 ) %>
 
 readAllEntries :: Entry Dir -> IO (Either FileError [Entry ()])
@@ -208,15 +185,14 @@ readAllEntries dir = do
 data FileObject_
 type FileObject = JSRef FileObject_
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   '$1.file(hs_good($c), hs_error($c));',
-  ['Entry File'], 'FileError', 'FileObject',
+  ['Entry File'], 'Either FileError FileObject',
 ) %>
 
 <% %w{readAsText readAsBinaryString readAsDataURL}.each do |f| %>
-foreign import javascript interruptible
-  "hs_readFile('<%= f %>', $1, $c);"
-  js_<%= f %> :: FileObject -> IO JSString
-<%= f %>      :: FileObject -> IO String
-<%= f %> = fmap fromJSString . js_<%= f %>
+<%= jsImport(nil,
+  "hs_readFile('#{f}', $1, $c);",
+  ['FileObject'], 'String',
+) %>
 <% end %>

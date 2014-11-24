@@ -19,9 +19,9 @@ import Data.Time.Clock
 import Control.Monad ((>=>))
 <%= hsImports %>
 
-<%= twoCallbacks(nil,
+<%= jsImport(nil,
   'navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);',
-  ['GeolocationOptions'], 'PositionError', 'Position',
+  ['GeolocationOptions'], 'Either PositionError Position',
 ) %>
 
 <%= makeRecord('Coordinates', [
