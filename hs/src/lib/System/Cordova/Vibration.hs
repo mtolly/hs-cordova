@@ -1,3 +1,4 @@
+
 module System.Cordova.Vibration
 ( vibrate
 , vibrateFor
@@ -5,23 +6,34 @@ module System.Cordova.Vibration
 , vibrateCancel
 ) where
 
-import GHCJS.Types (JSRef)
-import GHCJS.Marshal (toJSRef)
+import qualified GHCJS.Types as RTypes
+import qualified GHCJS.Marshal as RMarshal
+import qualified System.Cordova.Internal as RInternal
+
 
 foreign import javascript unsafe
   "navigator.vibrate();"
-  vibrate :: IO ()
-
+  js_vibrate ::  IO (RTypes.JSRef (()))
+vibrate ::  IO (())
+vibrate  =  do
+  res <- js_vibrate 
+  RInternal.fromJSRef' res
 foreign import javascript unsafe
   "navigator.vibrate($1);"
-  vibrateFor :: Int -> IO ()
-
+  js_vibrateFor :: RTypes.JSRef (Int) -> IO (RTypes.JSRef (()))
+vibrateFor :: Int -> IO (())
+vibrateFor arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_vibrateFor arg0'
+  RInternal.fromJSRef' res
 foreign import javascript unsafe
   "navigator.vibrate($1);"
-  js_vibratePattern :: JSRef [Int] -> IO ()
-
-vibratePattern :: [Int] -> IO ()
-vibratePattern pat = toJSRef pat >>= js_vibratePattern
+  js_vibratePattern :: RTypes.JSRef ([Int]) -> IO (RTypes.JSRef (()))
+vibratePattern :: [Int] -> IO (())
+vibratePattern arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_vibratePattern arg0'
+  RInternal.fromJSRef' res
 
 vibrateCancel :: IO ()
 vibrateCancel = vibrateFor 0
