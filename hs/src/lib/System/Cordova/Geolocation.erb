@@ -19,8 +19,7 @@ import Data.Time.Clock
 import Control.Monad ((>=>))
 <%= hsImports %>
 
-<%= twoCallbacks(
-  'getCurrentPosition',
+<%= twoCallbacks(nil,
   'navigator.geolocation.getCurrentPosition(hs_good($c), hs_error($c), $1);',
   ['GeolocationOptions'], 'PositionError', 'Position',
 ) %>

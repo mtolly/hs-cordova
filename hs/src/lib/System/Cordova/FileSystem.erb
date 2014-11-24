@@ -83,8 +83,8 @@ end, 'FileError.') %>
 data FileSystem_
 type FileSystem = JSRef FileSystem_
 
-<%= twoCallbacks(
-  'requestFileSystem', 'requestFileSystem($1, $2, hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  'requestFileSystem($1, $2, hs_good($c), hs_error($c));',
   ['Storage', 'Integer'], 'FileError', 'FileSystem',
 ) %>
 
@@ -134,37 +134,36 @@ genericEntry = castRef
   Field.new('UTCTime', 'modificationTime'),
 ], false) %>
 
-<%= twoCallbacks(
-  'getMetadata', '$1.getMetadata(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.getMetadata(hs_good($c), hs_error($c));',
   ['Entry a'], 'FileError', 'Metadata',
 ) %>
 
 -- TODO: setMetadata
 
-<%= twoCallbacks(
-  'remove', '$1.remove(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.remove(hs_good($c), hs_error($c));',
   ['Entry a'], 'FileError', '()',
 ) %>
 
-<%= twoCallbacks(
-  'removeRecursively', '$1.removeRecursively(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.removeRecursively(hs_good($c), hs_error($c));',
   ['Entry Dir'], 'FileError', '()',
 ) %>
 
 <% %w{moveTo copyTo}.each do |f| %>
-<%= twoCallbacks(
-  f, "$1.#{f}(hs_good($c), hs_error($c));",
+<%= twoCallbacks(nil,
+  "$1.#{f}(hs_good($c), hs_error($c));",
   ['Entry Dir', 'Maybe FilePath', 'Entry a'], 'FileError', 'Entry a',
 ) %>
 <% end %>
 
-<%= twoCallbacks(
-  'getParent', '$1.getParent(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.getParent(hs_good($c), hs_error($c));',
   ['Entry a'], 'FileError', 'Entry Dir',
 ) %>
 
-<%= twoCallbacks(
-  'resolveLocalFileSystemURL',
+<%= twoCallbacks(nil,
   'resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));',
   ['String'], 'FileError', 'Entry ()',
 ) %>
@@ -175,13 +174,13 @@ genericEntry = castRef
   Tag.new('NoCreate' , '{create: false}'                 ),
 ]) %>
 
-<%= twoCallbacks(
-  'getFile', '$3.getFile($1, $2, hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$3.getFile($1, $2, hs_good($c), hs_error($c));',
   ['FilePath', 'GetFlags', 'Entry Dir'], 'FileError', 'Entry File',
 ) %>
 
-<%= twoCallbacks(
-  'getDirectory', '$3.getDirectory($1, $2, hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$3.getDirectory($1, $2, hs_good($c), hs_error($c));',
   ['FilePath', 'GetFlags', 'Entry Dir'], 'FileError', 'Entry Dir',
 ) %>
 
@@ -192,8 +191,8 @@ foreign import javascript unsafe
   "$1.createReader()"
   createReader :: Entry Dir -> IO DirReader
 
-<%= twoCallbacks(
-  'readEntries', '$1.readEntries(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.readEntries(hs_good($c), hs_error($c));',
   ['DirReader'], 'FileError', '[Entry ()]',
 ) %>
 
@@ -209,8 +208,8 @@ readAllEntries dir = do
 data FileObject_
 type FileObject = JSRef FileObject_
 
-<%= twoCallbacks(
-  'file', '$1.file(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  '$1.file(hs_good($c), hs_error($c));',
   ['Entry File'], 'FileError', 'FileObject',
 ) %>
 

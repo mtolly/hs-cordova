@@ -18,13 +18,13 @@ module System.Cordova.Camera
 import GHCJS.Marshal
 <%= hsImports %>
 
-<%= twoCallbacks(
-  'getPicture', 'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
+<%= twoCallbacks(nil,
+  'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
   ['CameraOptions'], 'String', 'String',
 ) %>
 
-<%= twoCallbacks(
-  'cleanup', 'navigator.camera.cleanup(hs_good($c), hs_error($c));',
+<%= twoCallbacks(nil,
+  'navigator.camera.cleanup(hs_good($c), hs_error($c));',
   [], 'String', '()',
 ) %>
 

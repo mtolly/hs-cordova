@@ -93,18 +93,26 @@ def makeRecord(name, fields, default = true)
 end
 
 def twoCallbacks(hsName, jsExpr, args, resError, resGood)
+  unless hsName
+    idents = jsExpr.scan /[A-Za-z_][A-Za-z0-9_]*/
+    idents.reject! { |id| %w{hs_good hs_error c}.include? id }
+    hsName = idents[-1]
+  end
   argsJs = args.map { |arg| "RTypes.JSRef (#{arg}) ->" }.join(' ')
   argsHs = args.map { |arg| "#{arg} ->"         }.join(' ')
   vals = (0 ... args.length).map { |i| "arg#{i}" }
+
   lines = []
   lines << "foreign import javascript interruptible"
   lines << "  #{jsExpr.inspect}"
   lines << "  js_#{hsName} :: #{argsJs} IO (RInternal.JSEitherRef (#{resError}) (#{resGood}))"
   lines << "#{hsName} :: #{argsHs} IO (Either (#{resError}) (#{resGood}))"
+
   lines << "#{hsName} #{vals.join(' ')} = do"
   vals.each do |val|
     lines << "  #{val}' <- RMarshal.toJSRef #{val}"
   end
   lines << "  js_#{hsName} #{vals.map { |v| "#{v}'" }.join(' ')} >>= RInternal.fromJSEitherRef"
+
   lines.join("\n")
 end
