@@ -5,6 +5,7 @@ module System.Cordova.Geolocation
 , Position(..)
 , PositionError(..)
 , PositionErrorCode(..)
+, GeolocationOptions(..)
 , getCurrentPosition
 , watchPosition
 ) where
