@@ -25,7 +25,7 @@ module System.Cordova.Dialogs
 <%= makeRecord('PromptResult', [
   Field.new('Int', 'buttonIndex'),
   Field.new('String', 'input1'),
-], false) %>
+], instanceDefault: false) %>
 
 <%= jsImport(nil,
   "navigator.notification.prompt($1, $c, $2, $3, $4);",

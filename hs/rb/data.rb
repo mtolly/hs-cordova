@@ -18,7 +18,7 @@ class Tag
   attr_reader :nameHs, :exprJs
 end
 
-def makeEnum(name, tags, exprPrefix = '', fromInstance = true)
+def makeEnum(name, tags, exprPrefix: '', instanceFrom: true)
   tags = tags.map do |t|
     t.is_a?(String) ? Tag.new(t) : t
   end
@@ -36,7 +36,7 @@ def makeEnum(name, tags, exprPrefix = '', fromInstance = true)
     lines << "  toJSRef #{tag.nameHs} = return #{importName}"
   end
 
-  if fromInstance
+  if instanceFrom
     lines << "instance RMarshal.FromJSRef #{name} where"
     lines << "  fromJSRef = RInternal.js_fromEnum"
   end
@@ -53,7 +53,7 @@ class Field
   attr_reader :type, :nameHs, :nameJs
 end
 
-def makeRecord(name, fields, default = true)
+def makeRecord(name, fields, instanceDefault: true)
   fieldDefs = fields.map do |field|
     "#{field.nameHs} :: #{field.type}"
   end
@@ -62,7 +62,7 @@ def makeRecord(name, fields, default = true)
   lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
 
   defaultExprs = [name] + Array.new(fields.length, 'RDefault.def')
-  if default
+  if instanceDefault
     lines << "instance RDefault.Default #{name} where def = #{defaultExprs.join(' ')}"
   end
 
@@ -95,7 +95,7 @@ def makeRecord(name, fields, default = true)
   lines.join("\n")
 end
 
-def jsImport(hsName, jsExpr, args, result, isIO = true)
+def jsImport(hsName, jsExpr, args, result, isIO: true)
   isEither   = result =~ /\bEither\b/
   isCallback = jsExpr.include? '$c'
   unless hsName

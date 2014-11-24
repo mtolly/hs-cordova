@@ -38,18 +38,18 @@ import Control.Monad ((>=>))
 <%= makeRecord('Position', [
   Field.new('Coordinates', 'coords'),
   Field.new('UTCTime', 'timestamp'),
-], false) %>
+], instanceDefault: false) %>
 
 <%= makeRecord('PositionError', [
   Field.new('PositionErrorCode', 'code'),
   Field.new('String', 'message'),
-], false) %>
+], instanceDefault: false) %>
 
 <%= makeEnum('PositionErrorCode', %w{
   PermissionDenied
   PositionUnavailable
   Timeout
-}, 'PositionError.') %>
+}, exprPrefix: 'PositionError.') %>
 
 <%= makeRecord('GeolocationOptions', [
   Field.new('Maybe Bool', 'enableHighAccuracy'),

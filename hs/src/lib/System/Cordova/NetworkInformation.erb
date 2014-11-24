@@ -22,7 +22,7 @@ import System.Cordova.EventListener
   Tag.new('Cell4G', 'CELL_4G'),
   'Cell',
   'None',
-], 'Connection.') %>
+], exprPrefix: 'Connection.') %>
 
 offlineEvent :: IO () -> IO (IO ())
 offlineEvent f = addEventListener_ "offline" f document

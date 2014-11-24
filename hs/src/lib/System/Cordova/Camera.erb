@@ -46,23 +46,23 @@ module System.Cordova.Camera
   Tag.new('DataURL', 'DATA_URL'),
   Tag.new('FileURI', 'FILE_URI'),
   Tag.new('NativeURI', 'NATIVE_URI'),
-], 'Camera.DestinationType.') %>
+], exprPrefix: 'Camera.DestinationType.') %>
 
 <%= makeEnum('Direction', %w{
   Back
   Front
-}, 'Camera.Direction.') %>
+}, exprPrefix: 'Camera.Direction.') %>
 
 <%= makeEnum('EncodingType', %w{
   JPEG
   PNG
-}, 'Camera.EncodingType.') %>
+}, exprPrefix: 'Camera.EncodingType.') %>
 
 <%= makeEnum('MediaType', %w{
   Picture
   Video
   AllMedia
-}, 'Camera.MediaType.') %>
+}, exprPrefix: 'Camera.MediaType.') %>
 
 <%= makeEnum('PopoverArrowDirection', [
   Tag.new('ArrowUp', 'ARROW_UP'),
@@ -70,7 +70,7 @@ module System.Cordova.Camera
   Tag.new('ArrowLeft', 'ARROW_LEFT'),
   Tag.new('ArrowRight', 'ARROW_RIGHT'),
   Tag.new('ArrowAny', 'ARROW_ANY'),
-], 'Camera.PopoverArrowDirection.') %>
+], exprPrefix: 'Camera.PopoverArrowDirection.') %>
 
 <%= makeRecord('PopoverOptions', [
   Field.new('Maybe Double', 'popX', 'x'),
@@ -84,4 +84,4 @@ module System.Cordova.Camera
   PhotoLibrary
   Camera
   SavedPhotoAlbum
-}, 'Camera.PictureSourceType.') %>
+}, exprPrefix: 'Camera.PictureSourceType.') %>

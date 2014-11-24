@@ -45,10 +45,7 @@ import qualified Data.ByteString.Char8 as B8
 <%= hsImports %>
 
 <% dirs.each do |dir| %>
-<%= jsImport(nil,
-  "cordova.file.#{dir}",
-  [], 'Maybe String', false
-) %>
+<%= jsImport(nil, "cordova.file.#{dir}", [], 'Maybe String', isIO: false) %>
 <% end %>
 
 <%= makeEnum('FileErrorCode', %w{
@@ -66,16 +63,16 @@ import qualified Data.ByteString.Char8 as B8
   PATH_EXISTS_ERR
 }.map do |err|
   Tag.new(err.split('_').map(&:capitalize).join(''), err)
-end, 'FileError.') %>
+end, exprPrefix: 'FileError.') %>
 
 <%= makeRecord('FileError', [
   Field.new('FileErrorCode', 'code'),
-], false) %>
+], instanceDefault: false) %>
 
 <%= makeEnum('Storage', %w{
   Temporary
   Persistent
-}, 'window.') %>
+}, exprPrefix: 'window.') %>
 
 data FileSystem_
 type FileSystem = JSRef FileSystem_
@@ -90,16 +87,16 @@ data Dir
 data Entry_ a
 type Entry a = JSRef (Entry_ a)
 
-<%= jsImport(nil, '$1.root'      , ['FileSystem'], 'Entry Dir' , false) %>
-<%= jsImport(nil, '$1.filesystem', ['Entry a'   ], 'FileSystem', false) %>
+<%= jsImport(nil, '$1.root'      , ['FileSystem'], 'Entry Dir' , isIO: false) %>
+<%= jsImport(nil, '$1.filesystem', ['Entry a'   ], 'FileSystem', isIO: false) %>
 
-<%= jsImport(nil, "$1.fullPath"       , ['Entry a'], 'FilePath', false) %>
-<%= jsImport(nil, "$1.name"           , ['Entry a'], 'FilePath', false) %>
-<%= jsImport(nil, "$1.toURL()"        , ['Entry a'], 'String'  , false) %>
-<%= jsImport(nil, "$1.toInternalURL()", ['Entry a'], 'String'  , false) %>
+<%= jsImport(nil, "$1.fullPath"       , ['Entry a'], 'FilePath', isIO: false) %>
+<%= jsImport(nil, "$1.name"           , ['Entry a'], 'FilePath', isIO: false) %>
+<%= jsImport(nil, "$1.toURL()"        , ['Entry a'], 'String'  , isIO: false) %>
+<%= jsImport(nil, "$1.toInternalURL()", ['Entry a'], 'String'  , isIO: false) %>
 
-<%= jsImport(nil, '$1.isFile'     , ['Entry a'], 'Bool', false) %>
-<%= jsImport(nil, '$1.isDirectory', ['Entry a'], 'Bool', false) %>
+<%= jsImport(nil, '$1.isFile'     , ['Entry a'], 'Bool', isIO: false) %>
+<%= jsImport(nil, '$1.isDirectory', ['Entry a'], 'Bool', isIO: false) %>
 
 classifyEntry :: Entry a -> Either (Entry File) (Entry Dir)
 classifyEntry e
@@ -112,7 +109,7 @@ genericEntry = castRef
 
 <%= makeRecord('Metadata', [
   Field.new('UTCTime', 'modificationTime'),
-], false) %>
+], instanceDefault: false) %>
 
 <%= jsImport(nil,
   '$1.getMetadata(hs_good($c), hs_error($c));',
@@ -152,7 +149,7 @@ genericEntry = castRef
   Tag.new('Exclusive', '{create: true, exclusive: true}' ),
   Tag.new('Create'   , '{create: true, exclusive: false}'),
   Tag.new('NoCreate' , '{create: false}'                 ),
-], '', false) %>
+], instanceFrom: false) %>
 
 <%= jsImport(nil,
   '$3.getFile($1, $2, hs_good($c), hs_error($c));',
@@ -192,10 +189,7 @@ type FileObject = JSRef FileObject_
 ) %>
 
 <% %w{readAsText readAsBinaryString readAsDataURL}.each do |f| %>
-<%= jsImport(nil,
-  "hs_readFile('#{f}', $1, $c);",
-  ['FileObject'], 'String',
-) %>
+<%= jsImport(nil, "hs_readFile('#{f}', $1, $c);", ['FileObject'], 'String') %>
 <% end %>
 
 -- TODO: better implementation
