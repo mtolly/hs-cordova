@@ -95,7 +95,7 @@ def makeRecord(name, fields, instanceDefault: true)
   lines.join("\n")
 end
 
-def jsImport(hsName, jsExpr, args, result, isIO: true)
+def jsImport(jsExpr, args, result, hsName: nil, isIO: true)
   isEither   = result =~ /\bEither\b/
   isCallback = jsExpr.include? '$c'
   unless hsName

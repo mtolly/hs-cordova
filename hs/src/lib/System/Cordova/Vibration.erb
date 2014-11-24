@@ -10,9 +10,9 @@ module System.Cordova.Vibration
 
 <%= hsImports %>
 
-<%= jsImport('vibrate'       , 'navigator.vibrate();'  , []       , '()') %>
-<%= jsImport('vibrateFor'    , 'navigator.vibrate($1);', ['Int']  , '()') %>
-<%= jsImport('vibratePattern', 'navigator.vibrate($1);', ['[Int]'], '()') %>
+<%= jsImport('navigator.vibrate();'  , []       , '()', hsName: 'vibrate'       ) %>
+<%= jsImport('navigator.vibrate($1);', ['Int']  , '()', hsName: 'vibrateFor'    ) %>
+<%= jsImport('navigator.vibrate($1);', ['[Int]'], '()', hsName: 'vibratePattern') %>
 
 vibrateCancel :: IO ()
 vibrateCancel = vibrateFor 0

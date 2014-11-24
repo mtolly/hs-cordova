@@ -12,12 +12,12 @@ module System.Cordova.Dialogs
 
 <%= hsImports %>
 
-<%= jsImport(nil,
+<%= jsImport(
   "navigator.notification.alert($1, $c, $2, $3);",
   ['String', 'Maybe String', 'Maybe String'], 'Int',
 ) %>
 
-<%= jsImport(nil,
+<%= jsImport(
   "navigator.notification.confirm($1, $c, $2, $3);",
   ['String', 'Maybe String', 'Maybe [String]'], 'Int',
 ) %>
@@ -27,9 +27,9 @@ module System.Cordova.Dialogs
   Field.new('String', 'input1'),
 ], instanceDefault: false) %>
 
-<%= jsImport(nil,
+<%= jsImport(
   "navigator.notification.prompt($1, $c, $2, $3, $4);",
   ['String', 'Maybe String', 'Maybe [String]', 'Maybe String'], 'PromptResult',
 ) %>
 
-<%= jsImport(nil, "navigator.notification.beep($1);", ['Int'], '()') %>
+<%= jsImport("navigator.notification.beep($1);", ['Int'], '()') %>

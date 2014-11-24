@@ -11,7 +11,8 @@ module System.Cordova.NetworkInformation
 import System.Cordova.EventListener
 <%= hsImports %>
 
-<%= jsImport('connectionType', 'navigator.connection.type', [], 'Connection') %>
+<%= jsImport('navigator.connection.type', [], 'Connection',
+  hsName: 'connectionType') %>
 
 <%= makeEnum('Connection', [
   'Unknown',

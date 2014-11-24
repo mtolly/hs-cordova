@@ -17,12 +17,12 @@ module System.Cordova.Camera
 
 <%= hsImports %>
 
-<%= jsImport(nil,
+<%= jsImport(
   'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
   ['CameraOptions'], 'Either String String',
 ) %>
 
-<%= jsImport(nil,
+<%= jsImport(
   'navigator.camera.cleanup(hs_good($c), hs_error($c));',
   [], 'Either String ()',
 ) %>

@@ -9,5 +9,5 @@ module System.Cordova.Device
 <%= hsImports %>
 
 <% fields.each do |field| %>
-<%= jsImport(nil, "device.#{field}", [], 'String', isIO: false) %>
+<%= jsImport("device.#{field}", [], 'String', isIO: false) %>
 <% end %>
