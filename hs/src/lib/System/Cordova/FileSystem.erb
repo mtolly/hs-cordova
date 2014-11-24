@@ -36,6 +36,8 @@ module System.Cordova.FileSystem
 , readAllEntries
 , FileObject, file
 , readAsText, readAsBinaryString, readAsDataURL, readAsBinary
+, FileWriter, Blob
+, createWriter, seek, textBlob, writeBlob
 ) where
 
 import GHCJS.Types
@@ -189,9 +191,32 @@ type FileObject = JSRef FileObject_
 ) %>
 
 <% %w{readAsText readAsBinaryString readAsDataURL}.each do |f| %>
-<%= jsImport("hs_readFile('#{f}', $1, $c);", ['FileObject'], 'String') %>
+<%= jsImport("hs_readFile('#{f}', $1, $c);", ['FileObject'], 'Either FileError String') %>
 <% end %>
 
 -- TODO: better implementation
-readAsBinary :: FileObject -> IO B8.ByteString
-readAsBinary = fmap B8.pack . readAsBinaryString
+readAsBinary :: FileObject -> IO (Either FileError B8.ByteString)
+readAsBinary = fmap (fmap B8.pack) . readAsBinaryString
+
+data FileWriter_
+type FileWriter = JSRef FileWriter_
+
+<%= jsImport(
+  '$1.createWriter(hs_good($c), hs_error($c));',
+  ['Entry File'], 'Either FileError FileWriter'
+) %>
+
+<%= jsImport('$1.seek($2);', ['FileWriter', 'Int'], '()') %>
+
+data Blob_
+type Blob = JSRef Blob_
+
+<%= jsImport(
+  'new Blob([$1], {type: "text/plain"})',
+  ['String'], 'Blob', hsName: 'textBlob', isIO: false,
+) %>
+
+<%= jsImport(
+  'hs_writeBlob($1, $2, $c);', ['Blob', 'FileWriter'], 'Either FileError ()',
+  hsName: 'writeBlob',
+) %>

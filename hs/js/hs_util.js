@@ -33,8 +33,19 @@ function hs_error(callback) {
 
 function hs_readFile(fn, file, callback) {
   var reader = new FileReader();
-  reader.onloadend = function (e) {
-    callback(this.result);
+  reader.onloadend = function () {
+    hs_good(callback)(this.result);
+  }
+  reader.onerror = function () {
+    hs_error(callback)(this._error);
   }
   reader[fn](file);
+}
+
+function hs_writeBlob(blob, writer, callback) {
+  writer.onwriteend = hs_good(callback);
+  writer.onerror = function (e) {
+    hs_error(callback)(this.error);
+  }
+  writer.write(blob);
 }

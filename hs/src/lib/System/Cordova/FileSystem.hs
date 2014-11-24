@@ -20,6 +20,8 @@ module System.Cordova.FileSystem
 , readAllEntries
 , FileObject, file
 , readAsText, readAsBinaryString, readAsDataURL, readAsBinary
+, FileWriter, Blob
+, createWriter, seek, textBlob, writeBlob
 ) where
 
 import GHCJS.Types
@@ -441,32 +443,76 @@ file arg0 =  do
 
 foreign import javascript interruptible
   "hs_readFile('readAsText', $1, $c);"
-  js_readAsText :: RTypes.JSRef (FileObject) -> IO (RTypes.JSRef (String))
-readAsText :: FileObject -> IO (String)
+  js_readAsText :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
+readAsText :: FileObject -> IO (Either FileError String)
 readAsText arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsText arg0'
-  RInternal.fromJSRef' res
+  RInternal.fromJSEitherRef res
 
 foreign import javascript interruptible
   "hs_readFile('readAsBinaryString', $1, $c);"
-  js_readAsBinaryString :: RTypes.JSRef (FileObject) -> IO (RTypes.JSRef (String))
-readAsBinaryString :: FileObject -> IO (String)
+  js_readAsBinaryString :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
+readAsBinaryString :: FileObject -> IO (Either FileError String)
 readAsBinaryString arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsBinaryString arg0'
-  RInternal.fromJSRef' res
+  RInternal.fromJSEitherRef res
 
 foreign import javascript interruptible
   "hs_readFile('readAsDataURL', $1, $c);"
-  js_readAsDataURL :: RTypes.JSRef (FileObject) -> IO (RTypes.JSRef (String))
-readAsDataURL :: FileObject -> IO (String)
+  js_readAsDataURL :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
+readAsDataURL :: FileObject -> IO (Either FileError String)
 readAsDataURL arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsDataURL arg0'
-  RInternal.fromJSRef' res
+  RInternal.fromJSEitherRef res
 
 
 -- TODO: better implementation
-readAsBinary :: FileObject -> IO B8.ByteString
-readAsBinary = fmap B8.pack . readAsBinaryString
+readAsBinary :: FileObject -> IO (Either FileError B8.ByteString)
+readAsBinary = fmap (fmap B8.pack) . readAsBinaryString
+
+data FileWriter_
+type FileWriter = JSRef FileWriter_
+
+foreign import javascript interruptible
+  "$1.createWriter(hs_good($c), hs_error($c));"
+  js_createWriter :: RTypes.JSRef (Entry File) -> IO (RInternal.JSEitherRef FileError FileWriter)
+createWriter :: Entry File -> IO (Either FileError FileWriter)
+createWriter arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_createWriter arg0'
+  RInternal.fromJSEitherRef res
+
+foreign import javascript unsafe
+  "$1.seek($2);"
+  js_seek :: RTypes.JSRef (FileWriter) -> RTypes.JSRef (Int) -> IO (RTypes.JSRef (()))
+seek :: FileWriter -> Int -> IO (())
+seek arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_seek arg0' arg1'
+  RInternal.fromJSRef' res
+
+data Blob_
+type Blob = JSRef Blob_
+
+foreign import javascript unsafe
+  "new Blob([$1], {type: \"text/plain\"})"
+  js_textBlob :: RTypes.JSRef (String) -> IO (RTypes.JSRef (Blob))
+textBlob :: String ->  (Blob)
+textBlob arg0 = RUnsafe.unsafePerformIO $ do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_textBlob arg0'
+  RInternal.fromJSRef' res
+
+foreign import javascript interruptible
+  "hs_writeBlob($1, $2, $c);"
+  js_writeBlob :: RTypes.JSRef (Blob) -> RTypes.JSRef (FileWriter) -> IO (RInternal.JSEitherRef FileError ())
+writeBlob :: Blob -> FileWriter -> IO (Either FileError ())
+writeBlob arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_writeBlob arg0' arg1'
+  RInternal.fromJSEitherRef res
