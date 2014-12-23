@@ -17,7 +17,7 @@ foreign import javascript unsafe
 
 addEventListener_ :: String -> IO () -> JSRef a -> IO (IO ())
 addEventListener_ str f elt = do
-  jsfun <- asyncCallback AlwaysRetain f
+  jsfun <- asyncCallback (DomRetain $ castRef elt) f
   js_addEventListener (toJSString str) jsfun elt
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
