@@ -16,6 +16,7 @@ library
     System.Cordova.NetworkInformation
     System.Cordova.Dialogs
     System.Cordova.Geolocation
+    System.Cordova.StatusBar
   other-modules:
     System.Cordova.Internal
     System.Cordova.EventListener
