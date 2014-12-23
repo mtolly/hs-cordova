@@ -24,6 +24,7 @@ Completed functionality:
   * [`org.apache.cordova.network-information`](http://plugins.cordova.io/#/package/org.apache.cordova.network-information)
   * [`org.apache.cordova.geolocation`](http://plugins.cordova.io/#/package/org.apache.cordova.geolocation)
   * [`org.apache.cordova.statusbar`](http://plugins.cordova.io/#/package/org.apache.cordova.statusbar)
+  * [`org.apache.cordova.battery-status`](http://plugins.cordova.io/#/package/org.apache.cordova.battery-status)
 
 Tips for using the bindings:
 

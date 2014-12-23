@@ -42,7 +42,7 @@ instance RMarshal.FromJSRef Connection where
   fromJSRef = RInternal.js_fromEnum
 
 offlineEvent :: IO () -> IO (IO ())
-offlineEvent f = addEventListener_ "offline" f document
+offlineEvent f = addEventListener "offline" f document
 
 onlineEvent :: IO () -> IO (IO ())
-onlineEvent f = addEventListener_ "online" f document
+onlineEvent f = addEventListener "online" f document
