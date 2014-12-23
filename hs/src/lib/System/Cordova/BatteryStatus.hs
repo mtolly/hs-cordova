@@ -1,6 +1,6 @@
 
 module System.Cordova.BatteryStatus
-( Status
+( Status(..)
 , onStatus
 , onCritical
 , onLow
