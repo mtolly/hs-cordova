@@ -37,7 +37,10 @@ confirm arg0 arg1 arg2 =  do
   res <- js_confirm arg0' arg1' arg2'
   RInternal.fromJSRef' res
 
-data PromptResult = PromptResult { buttonIndex :: Int, input1 :: String } deriving (Eq, Ord, Show, Read)
+data PromptResult = PromptResult
+  { buttonIndex :: Int
+  , input1 :: String
+  } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef PromptResult where
   toJSRef opts = do
     obj <- RForeign.newObj

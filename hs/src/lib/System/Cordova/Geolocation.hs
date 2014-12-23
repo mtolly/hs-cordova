@@ -33,7 +33,15 @@ getCurrentPosition arg0 =  do
   res <- js_getCurrentPosition arg0'
   RInternal.fromJSEitherRef res
 
-data Coordinates = Coordinates { latitude :: Maybe Double, longitude :: Maybe Double, altitude :: Maybe Double, accuracy :: Maybe Double, altitudeAccuracy :: Maybe Double, heading :: Maybe Double, speed :: Maybe Double } deriving (Eq, Ord, Show, Read)
+data Coordinates = Coordinates
+  { latitude :: Maybe Double
+  , longitude :: Maybe Double
+  , altitude :: Maybe Double
+  , accuracy :: Maybe Double
+  , altitudeAccuracy :: Maybe Double
+  , heading :: Maybe Double
+  , speed :: Maybe Double
+  } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default Coordinates where def = Coordinates RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
 instance RMarshal.ToJSRef Coordinates where
   toJSRef opts = do
@@ -61,7 +69,10 @@ instance RMarshal.FromJSRef Coordinates where
     _x6 <- RInternal.fromProp "speed" obj
     return $ Coordinates RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6
 
-data Position = Position { coords :: Coordinates, timestamp :: UTCTime } deriving (Eq, Ord, Show, Read)
+data Position = Position
+  { coords :: Coordinates
+  , timestamp :: UTCTime
+  } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef Position where
   toJSRef opts = do
     obj <- RForeign.newObj
@@ -78,7 +89,10 @@ instance RMarshal.FromJSRef Position where
     _x1 <- RInternal.fromProp "timestamp" obj
     return $ Position RApp.<$> _x0 RApp.<*> _x1
 
-data PositionError = PositionError { code :: PositionErrorCode, message :: String } deriving (Eq, Ord, Show, Read)
+data PositionError = PositionError
+  { code :: PositionErrorCode
+  , message :: String
+  } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef PositionError where
   toJSRef opts = do
     obj <- RForeign.newObj
@@ -95,7 +109,11 @@ instance RMarshal.FromJSRef PositionError where
     _x1 <- RInternal.fromProp "message" obj
     return $ PositionError RApp.<$> _x0 RApp.<*> _x1
 
-data PositionErrorCode = PermissionDenied | PositionUnavailable | Timeout deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data PositionErrorCode
+  = PermissionDenied
+  | PositionUnavailable
+  | Timeout
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "PositionError.PERMISSIONDENIED" _PositionErrorCode_PermissionDenied :: RTypes.JSRef PositionErrorCode
 foreign import javascript unsafe "PositionError.POSITIONUNAVAILABLE" _PositionErrorCode_PositionUnavailable :: RTypes.JSRef PositionErrorCode
 foreign import javascript unsafe "PositionError.TIMEOUT" _PositionErrorCode_Timeout :: RTypes.JSRef PositionErrorCode
@@ -106,7 +124,11 @@ instance RMarshal.ToJSRef PositionErrorCode where
 instance RMarshal.FromJSRef PositionErrorCode where
   fromJSRef = RInternal.js_fromEnum
 
-data GeolocationOptions = GeolocationOptions { enableHighAccuracy :: Maybe Bool, timeout :: Maybe Double, maximumAge :: Maybe Double } deriving (Eq, Ord, Show, Read)
+data GeolocationOptions = GeolocationOptions
+  { enableHighAccuracy :: Maybe Bool
+  , timeout :: Maybe Double
+  , maximumAge :: Maybe Double
+  } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default GeolocationOptions where def = GeolocationOptions RDefault.def RDefault.def RDefault.def
 instance RMarshal.ToJSRef GeolocationOptions where
   toJSRef opts = do

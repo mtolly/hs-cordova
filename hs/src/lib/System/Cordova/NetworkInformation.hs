@@ -20,7 +20,16 @@ connectionType  =  do
   res <- js_connectionType 
   RInternal.fromJSRef' res
 
-data Connection = Unknown | Ethernet | Wifi | Cell2G | Cell3G | Cell4G | Cell | None deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data Connection
+  = Unknown
+  | Ethernet
+  | Wifi
+  | Cell2G
+  | Cell3G
+  | Cell4G
+  | Cell
+  | None
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Connection.UNKNOWN" _Connection_Unknown :: RTypes.JSRef Connection
 foreign import javascript unsafe "Connection.ETHERNET" _Connection_Ethernet :: RTypes.JSRef Connection
 foreign import javascript unsafe "Connection.WIFI" _Connection_Wifi :: RTypes.JSRef Connection

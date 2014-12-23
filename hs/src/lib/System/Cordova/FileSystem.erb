@@ -64,7 +64,7 @@ import qualified Data.ByteString.Char8 as B8
   TYPE_MISMATCH_ERR
   PATH_EXISTS_ERR
 }.map do |err|
-  Tag.new(err.split('_').map(&:capitalize).join(''), err)
+  Tag.new(err.split('_').map(&:capitalize).join(''), jsExpr: err)
 end, exprPrefix: 'FileError.') %>
 
 <%= makeRecord('FileError', [
@@ -148,9 +148,9 @@ genericEntry = castRef
 ) %>
 
 <%= makeEnum('GetFlags', [
-  Tag.new('Exclusive', '{create: true, exclusive: true}' ),
-  Tag.new('Create'   , '{create: true, exclusive: false}'),
-  Tag.new('NoCreate' , '{create: false}'                 ),
+  Tag.new('Exclusive', jsExpr: '{create: true, exclusive: true}' ),
+  Tag.new('Create'   , jsExpr: '{create: true, exclusive: false}'),
+  Tag.new('NoCreate' , jsExpr: '{create: false}'                 ),
 ], instanceFrom: false) %>
 
 <%= jsImport(

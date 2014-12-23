@@ -43,9 +43,9 @@ module System.Cordova.Camera
 ]) %>
 
 <%= makeEnum('DestinationType', [
-  Tag.new('DataURL', 'DATA_URL'),
-  Tag.new('FileURI', 'FILE_URI'),
-  Tag.new('NativeURI', 'NATIVE_URI'),
+  Tag.new('DataURL', jsExpr: 'DATA_URL'),
+  Tag.new('FileURI', jsExpr: 'FILE_URI'),
+  Tag.new('NativeURI', jsExpr: 'NATIVE_URI'),
 ], exprPrefix: 'Camera.DestinationType.') %>
 
 <%= makeEnum('Direction', %w{
@@ -65,19 +65,19 @@ module System.Cordova.Camera
 }, exprPrefix: 'Camera.MediaType.') %>
 
 <%= makeEnum('PopoverArrowDirection', [
-  Tag.new('ArrowUp', 'ARROW_UP'),
-  Tag.new('ArrowDown', 'ARROW_DOWN'),
-  Tag.new('ArrowLeft', 'ARROW_LEFT'),
-  Tag.new('ArrowRight', 'ARROW_RIGHT'),
-  Tag.new('ArrowAny', 'ARROW_ANY'),
+  Tag.new('ArrowUp', jsExpr: 'ARROW_UP'),
+  Tag.new('ArrowDown', jsExpr: 'ARROW_DOWN'),
+  Tag.new('ArrowLeft', jsExpr: 'ARROW_LEFT'),
+  Tag.new('ArrowRight', jsExpr: 'ARROW_RIGHT'),
+  Tag.new('ArrowAny', jsExpr: 'ARROW_ANY'),
 ], exprPrefix: 'Camera.PopoverArrowDirection.') %>
 
 <%= makeRecord('PopoverOptions', [
-  Field.new('Maybe Double', 'popX', 'x'),
-  Field.new('Maybe Double', 'popY', 'y'),
-  Field.new('Maybe Double', 'popWidth', 'width'),
-  Field.new('Maybe Double', 'popHeight', 'height'),
-  Field.new('Maybe PopoverArrowDirection', 'popArrowDir', 'arrowDir'),
+  Field.new('Maybe Double', 'popX', jsName: 'x'),
+  Field.new('Maybe Double', 'popY', jsName: 'y'),
+  Field.new('Maybe Double', 'popWidth', jsName: 'width'),
+  Field.new('Maybe Double', 'popHeight', jsName: 'height'),
+  Field.new('Maybe PopoverArrowDirection', 'popArrowDir', jsName: 'arrowDir'),
 ]) %>
 
 <%= makeEnum('SourceType', %w{

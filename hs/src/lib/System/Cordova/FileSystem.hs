@@ -134,7 +134,20 @@ sharedDirectory  = RUnsafe.unsafePerformIO $ do
   RInternal.fromJSRef' res
 
 
-data FileErrorCode = NotFoundErr | SecurityErr | AbortErr | NotReadableErr | EncodingErr | NoModificationAllowedErr | InvalidStateErr | SyntaxErr | InvalidModificationErr | QuotaExceededErr | TypeMismatchErr | PathExistsErr deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data FileErrorCode
+  = NotFoundErr
+  | SecurityErr
+  | AbortErr
+  | NotReadableErr
+  | EncodingErr
+  | NoModificationAllowedErr
+  | InvalidStateErr
+  | SyntaxErr
+  | InvalidModificationErr
+  | QuotaExceededErr
+  | TypeMismatchErr
+  | PathExistsErr
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "FileError.NOT_FOUND_ERR" _FileErrorCode_NotFoundErr :: RTypes.JSRef FileErrorCode
 foreign import javascript unsafe "FileError.SECURITY_ERR" _FileErrorCode_SecurityErr :: RTypes.JSRef FileErrorCode
 foreign import javascript unsafe "FileError.ABORT_ERR" _FileErrorCode_AbortErr :: RTypes.JSRef FileErrorCode
@@ -163,7 +176,9 @@ instance RMarshal.ToJSRef FileErrorCode where
 instance RMarshal.FromJSRef FileErrorCode where
   fromJSRef = RInternal.js_fromEnum
 
-data FileError = FileError { code :: FileErrorCode } deriving (Eq, Ord, Show, Read)
+data FileError = FileError
+  { code :: FileErrorCode
+  } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef FileError where
   toJSRef opts = do
     obj <- RForeign.newObj
@@ -178,7 +193,10 @@ instance RMarshal.FromJSRef FileError where
     _x0 <- RInternal.fromProp "code" obj
     return $ FileError RApp.<$> _x0
 
-data Storage = Temporary | Persistent deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data Storage
+  = Temporary
+  | Persistent
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "window.TEMPORARY" _Storage_Temporary :: RTypes.JSRef Storage
 foreign import javascript unsafe "window.PERSISTENT" _Storage_Persistent :: RTypes.JSRef Storage
 instance RMarshal.ToJSRef Storage where
@@ -281,7 +299,9 @@ classifyEntry e
 genericEntry :: Entry a -> Entry ()
 genericEntry = castRef
 
-data Metadata = Metadata { modificationTime :: UTCTime } deriving (Eq, Ord, Show, Read)
+data Metadata = Metadata
+  { modificationTime :: UTCTime
+  } deriving (Eq, Ord, Show, Read)
 instance RMarshal.ToJSRef Metadata where
   toJSRef opts = do
     obj <- RForeign.newObj
@@ -367,7 +387,11 @@ resolveLocalFileSystemURL arg0 =  do
   res <- js_resolveLocalFileSystemURL arg0'
   RInternal.fromJSEitherRef res
 
-data GetFlags = Exclusive | Create | NoCreate deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data GetFlags
+  = Exclusive
+  | Create
+  | NoCreate
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "{create: true, exclusive: true}" _GetFlags_Exclusive :: RTypes.JSRef GetFlags
 foreign import javascript unsafe "{create: true, exclusive: false}" _GetFlags_Create :: RTypes.JSRef GetFlags
 foreign import javascript unsafe "{create: false}" _GetFlags_NoCreate :: RTypes.JSRef GetFlags

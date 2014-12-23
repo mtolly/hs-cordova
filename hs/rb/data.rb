@@ -11,29 +11,37 @@ EOS
 end
 
 class Tag
-  def initialize(nameHs, exprJs = nameHs.upcase)
-    @nameHs = nameHs
-    @exprJs = exprJs
+  def initialize(hsName, jsExpr: hsName.upcase, hsDoc: nil)
+    @hsName = hsName
+    @jsExpr = jsExpr
+    @hsDoc = hsDoc
   end
-  attr_reader :nameHs, :exprJs
+  attr_reader :hsName, :jsExpr, :hsDoc
 end
 
-def makeEnum(name, tags, exprPrefix: '', instanceFrom: true)
+def makeEnum(name, tags, exprPrefix: '', instanceFrom: true, hsDoc: nil)
   tags = tags.map do |t|
     t.is_a?(String) ? Tag.new(t) : t
   end
   lines = []
 
-  lines << "data #{name} = #{tags.map(&:nameHs).join(' | ')} deriving (Eq, Ord, Show, Read, Enum, Bounded)"
+  lines << "-- | #{hsDoc}" if hsDoc
+  lines << "data #{name}"
+  tags.each_with_index do |tag, i|
+    lines << "  #{i == 0 ? '=' : '|'} #{tag.hsName}"
+    lines << "  -- ^ #{tag.hsDoc}" if tag.hsDoc
+  end
+  lines << "  deriving (Eq, Ord, Show, Read, Enum, Bounded)"
+
   tags.each do |tag|
-    importName = "_#{name}_#{tag.nameHs}"
-    lines << "foreign import javascript unsafe #{(exprPrefix + tag.exprJs).inspect} #{importName} :: RTypes.JSRef #{name}"
+    importName = "_#{name}_#{tag.hsName}"
+    lines << "foreign import javascript unsafe #{(exprPrefix + tag.jsExpr).inspect} #{importName} :: RTypes.JSRef #{name}"
   end
 
   lines << "instance RMarshal.ToJSRef #{name} where"
   tags.each do |tag|
-    importName = "_#{name}_#{tag.nameHs}"
-    lines << "  toJSRef #{tag.nameHs} = return #{importName}"
+    importName = "_#{name}_#{tag.hsName}"
+    lines << "  toJSRef #{tag.hsName} = return #{importName}"
   end
 
   if instanceFrom
@@ -45,21 +53,25 @@ def makeEnum(name, tags, exprPrefix: '', instanceFrom: true)
 end
 
 class Field
-  def initialize(type, nameHs, nameJs = nameHs)
+  def initialize(type, hsName, jsName: hsName, hsDoc: nil)
     @type = type
-    @nameHs = nameHs
-    @nameJs = nameJs
+    @hsName = hsName
+    @jsName = jsName
+    @hsDoc = hsDoc
   end
-  attr_reader :type, :nameHs, :nameJs
+  attr_reader :type, :hsName, :jsName, :hsDoc
 end
 
-def makeRecord(name, fields, instanceDefault: true)
-  fieldDefs = fields.map do |field|
-    "#{field.nameHs} :: #{field.type}"
-  end
+def makeRecord(name, fields, instanceDefault: true, hsDoc: nil)
   lines = []
 
-  lines << "data #{name} = #{name} { #{fieldDefs.join(', ')} } deriving (Eq, Ord, Show, Read)"
+  lines << "-- | #{hsDoc}" if hsDoc
+  lines << "data #{name} = #{name}"
+  fields.each_with_index do |field, i|
+    lines << "  #{i == 0 ? '{' : ','} #{field.hsName} :: #{field.type}"
+    lines << "  -- ^ #{field.hsDoc}" if field.hsDoc
+  end
+  lines << "  } deriving (Eq, Ord, Show, Read)"
 
   defaultExprs = [name] + Array.new(fields.length, 'RDefault.def')
   if instanceDefault
@@ -75,9 +87,9 @@ def makeRecord(name, fields, instanceDefault: true)
   lines << "        _set s f = RMarshal.toJSRef (f opts) >>= \\ref -> RForeign.setProp s ref obj"
   fields.each do |field|
     if field.type.start_with? 'Maybe'
-      lines << "    _setJust #{field.nameJs.inspect} #{field.nameHs}"
+      lines << "    _setJust #{field.jsName.inspect} #{field.hsName}"
     else
-      lines << "    _set #{field.nameJs.inspect} #{field.nameHs}"
+      lines << "    _set #{field.jsName.inspect} #{field.hsName}"
     end
   end
   lines << "    return obj"
@@ -88,14 +100,14 @@ def makeRecord(name, fields, instanceDefault: true)
   fields.each_with_index do |field, i|
     thisBound = "_x#{i}"
     bound << thisBound
-    lines << "    #{thisBound} <- RInternal.fromProp #{field.nameJs.inspect} obj"
+    lines << "    #{thisBound} <- RInternal.fromProp #{field.jsName.inspect} obj"
   end
   lines << "    return $ #{name} RApp.<$> #{bound.join(' RApp.<*> ')}"
 
   lines.join("\n")
 end
 
-def jsImport(jsExpr, args, result, hsName: nil, isIO: true)
+def jsImport(jsExpr, args, result, hsName: nil, isIO: true, hsDoc: nil)
   isEither   = result =~ /\bEither\b/
   isCallback = jsExpr.include? '$c'
   unless hsName
@@ -117,6 +129,7 @@ def jsImport(jsExpr, args, result, hsName: nil, isIO: true)
   end
   lines << "  js_#{hsName} :: #{argsJs} IO (#{resultJs})"
 
+  lines << "-- | #{hsDoc}" if hsDoc
   lines << "#{hsName} :: #{argsHs} #{isIO ? 'IO' : ''} (#{result})"
   lines << "#{hsName} #{vals.join(' ')} = #{isIO ? '' : 'RUnsafe.unsafePerformIO $'} do"
   vals.each do |val|

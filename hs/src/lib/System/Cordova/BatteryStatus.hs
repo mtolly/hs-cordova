@@ -16,7 +16,10 @@ import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
 
 
-data Status = Status { level :: Maybe Double, isPlugged :: Maybe Bool } deriving (Eq, Ord, Show, Read)
+data Status = Status
+  { level :: Maybe Double
+  , isPlugged :: Maybe Bool
+  } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default Status where def = Status RDefault.def RDefault.def
 instance RMarshal.ToJSRef Status where
   toJSRef opts = do

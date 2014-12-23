@@ -38,7 +38,20 @@ cleanup  =  do
   res <- js_cleanup 
   RInternal.fromJSEitherRef res
 
-data CameraOptions = CameraOptions { quality :: Maybe Int, destinationType :: Maybe DestinationType, sourceType :: Maybe SourceType, allowEdit :: Maybe Bool, encodingType :: Maybe EncodingType, targetWidth :: Maybe Int, targetHeight :: Maybe Int, mediaType :: Maybe MediaType, correctOrientation :: Maybe Bool, saveToPhotoAlbum :: Maybe Bool, popoverOptions :: Maybe PopoverOptions, cameraDirection :: Maybe Direction } deriving (Eq, Ord, Show, Read)
+data CameraOptions = CameraOptions
+  { quality :: Maybe Int
+  , destinationType :: Maybe DestinationType
+  , sourceType :: Maybe SourceType
+  , allowEdit :: Maybe Bool
+  , encodingType :: Maybe EncodingType
+  , targetWidth :: Maybe Int
+  , targetHeight :: Maybe Int
+  , mediaType :: Maybe MediaType
+  , correctOrientation :: Maybe Bool
+  , saveToPhotoAlbum :: Maybe Bool
+  , popoverOptions :: Maybe PopoverOptions
+  , cameraDirection :: Maybe Direction
+  } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default CameraOptions where def = CameraOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
 instance RMarshal.ToJSRef CameraOptions where
   toJSRef opts = do
@@ -76,7 +89,11 @@ instance RMarshal.FromJSRef CameraOptions where
     _x11 <- RInternal.fromProp "cameraDirection" obj
     return $ CameraOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6 RApp.<*> _x7 RApp.<*> _x8 RApp.<*> _x9 RApp.<*> _x10 RApp.<*> _x11
 
-data DestinationType = DataURL | FileURI | NativeURI deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data DestinationType
+  = DataURL
+  | FileURI
+  | NativeURI
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.DestinationType.DATA_URL" _DestinationType_DataURL :: RTypes.JSRef DestinationType
 foreign import javascript unsafe "Camera.DestinationType.FILE_URI" _DestinationType_FileURI :: RTypes.JSRef DestinationType
 foreign import javascript unsafe "Camera.DestinationType.NATIVE_URI" _DestinationType_NativeURI :: RTypes.JSRef DestinationType
@@ -87,7 +104,10 @@ instance RMarshal.ToJSRef DestinationType where
 instance RMarshal.FromJSRef DestinationType where
   fromJSRef = RInternal.js_fromEnum
 
-data Direction = Back | Front deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data Direction
+  = Back
+  | Front
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.Direction.BACK" _Direction_Back :: RTypes.JSRef Direction
 foreign import javascript unsafe "Camera.Direction.FRONT" _Direction_Front :: RTypes.JSRef Direction
 instance RMarshal.ToJSRef Direction where
@@ -96,7 +116,10 @@ instance RMarshal.ToJSRef Direction where
 instance RMarshal.FromJSRef Direction where
   fromJSRef = RInternal.js_fromEnum
 
-data EncodingType = JPEG | PNG deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data EncodingType
+  = JPEG
+  | PNG
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.EncodingType.JPEG" _EncodingType_JPEG :: RTypes.JSRef EncodingType
 foreign import javascript unsafe "Camera.EncodingType.PNG" _EncodingType_PNG :: RTypes.JSRef EncodingType
 instance RMarshal.ToJSRef EncodingType where
@@ -105,7 +128,11 @@ instance RMarshal.ToJSRef EncodingType where
 instance RMarshal.FromJSRef EncodingType where
   fromJSRef = RInternal.js_fromEnum
 
-data MediaType = Picture | Video | AllMedia deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data MediaType
+  = Picture
+  | Video
+  | AllMedia
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.MediaType.PICTURE" _MediaType_Picture :: RTypes.JSRef MediaType
 foreign import javascript unsafe "Camera.MediaType.VIDEO" _MediaType_Video :: RTypes.JSRef MediaType
 foreign import javascript unsafe "Camera.MediaType.ALLMEDIA" _MediaType_AllMedia :: RTypes.JSRef MediaType
@@ -116,7 +143,13 @@ instance RMarshal.ToJSRef MediaType where
 instance RMarshal.FromJSRef MediaType where
   fromJSRef = RInternal.js_fromEnum
 
-data PopoverArrowDirection = ArrowUp | ArrowDown | ArrowLeft | ArrowRight | ArrowAny deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data PopoverArrowDirection
+  = ArrowUp
+  | ArrowDown
+  | ArrowLeft
+  | ArrowRight
+  | ArrowAny
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.PopoverArrowDirection.ARROW_UP" _PopoverArrowDirection_ArrowUp :: RTypes.JSRef PopoverArrowDirection
 foreign import javascript unsafe "Camera.PopoverArrowDirection.ARROW_DOWN" _PopoverArrowDirection_ArrowDown :: RTypes.JSRef PopoverArrowDirection
 foreign import javascript unsafe "Camera.PopoverArrowDirection.ARROW_LEFT" _PopoverArrowDirection_ArrowLeft :: RTypes.JSRef PopoverArrowDirection
@@ -131,7 +164,13 @@ instance RMarshal.ToJSRef PopoverArrowDirection where
 instance RMarshal.FromJSRef PopoverArrowDirection where
   fromJSRef = RInternal.js_fromEnum
 
-data PopoverOptions = PopoverOptions { popX :: Maybe Double, popY :: Maybe Double, popWidth :: Maybe Double, popHeight :: Maybe Double, popArrowDir :: Maybe PopoverArrowDirection } deriving (Eq, Ord, Show, Read)
+data PopoverOptions = PopoverOptions
+  { popX :: Maybe Double
+  , popY :: Maybe Double
+  , popWidth :: Maybe Double
+  , popHeight :: Maybe Double
+  , popArrowDir :: Maybe PopoverArrowDirection
+  } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default PopoverOptions where def = PopoverOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
 instance RMarshal.ToJSRef PopoverOptions where
   toJSRef opts = do
@@ -155,7 +194,11 @@ instance RMarshal.FromJSRef PopoverOptions where
     _x4 <- RInternal.fromProp "arrowDir" obj
     return $ PopoverOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4
 
-data SourceType = PhotoLibrary | Camera | SavedPhotoAlbum deriving (Eq, Ord, Show, Read, Enum, Bounded)
+data SourceType
+  = PhotoLibrary
+  | Camera
+  | SavedPhotoAlbum
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
 foreign import javascript unsafe "Camera.PictureSourceType.PHOTOLIBRARY" _SourceType_PhotoLibrary :: RTypes.JSRef SourceType
 foreign import javascript unsafe "Camera.PictureSourceType.CAMERA" _SourceType_Camera :: RTypes.JSRef SourceType
 foreign import javascript unsafe "Camera.PictureSourceType.SAVEDPHOTOALBUM" _SourceType_SavedPhotoAlbum :: RTypes.JSRef SourceType
