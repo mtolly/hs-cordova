@@ -19,6 +19,7 @@ library
     System.Cordova.StatusBar
     System.Cordova.BatteryStatus
     System.Cordova.DeviceOrientation
+    System.Cordova.DeviceMotion
   other-modules:
     System.Cordova.Internal
     System.Cordova.EventListener
