@@ -11,11 +11,9 @@ module System.Cordova.Geolocation
 ) where
 
 import GHCJS.Types
-import GHCJS.Foreign
 import GHCJS.Marshal
-import System.Cordova.Internal
 import Data.Time.Clock
-import Control.Monad ((>=>))
+import System.Cordova.EventListener
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
@@ -149,11 +147,11 @@ instance RMarshal.FromJSRef GeolocationOptions where
     return $ GeolocationOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2
 
 foreign import javascript unsafe
-  "navigator.geolocation.watchPosition($1, $2, $3);"
+  "navigator.geolocation.watchPosition($2, $3, $1);"
   js_watchPosition
-  :: JSFun (JSRef Position -> IO ())
+  :: JSRef GeolocationOptions
+  -> JSFun (JSRef Position -> IO ())
   -> JSFun (JSRef PositionError -> IO ())
-  -> JSRef GeolocationOptions
   -> IO (JSRef String)
 
 foreign import javascript unsafe
@@ -165,11 +163,5 @@ watchPosition
   -> (Either PositionError Position -> IO ())
   -> IO (IO ())
 watchPosition opts f = do
-  fnGood  <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Right
-  fnError <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Left
   opts' <- toJSRef opts
-  watchID <- js_watchPosition fnGood fnError opts'
-  return $ do
-    js_clearWatch watchID
-    releaseAll fnGood
-    releaseAll fnError
+  globalListener (js_watchPosition opts') js_clearWatch f

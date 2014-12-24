@@ -1,7 +1,10 @@
 module System.Cordova.EventListener where
 
 import GHCJS.Foreign
+import GHCJS.Marshal
 import GHCJS.Types
+import Control.Monad ((>=>))
+import System.Cordova.Internal (fromJSRef')
 
 foreign import javascript unsafe
   "window.document"
@@ -34,3 +37,18 @@ addEventListener1 str f elt = do
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
     releaseAll jsfun
+
+globalListener
+  :: (FromJSRef err, FromJSRef a)
+  => (JSFun (JSRef a -> IO ()) -> JSFun (JSRef err -> IO ()) -> IO (JSRef id))
+  -> (JSRef id -> IO ())
+  -> (Either err a -> IO ())
+  -> IO (IO ())
+globalListener on off f = do
+  fnGood  <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Right
+  fnError <- asyncCallback1 AlwaysRetain $ fromJSRef' >=> f . Left
+  watchID <- on fnGood fnError
+  return $ do
+    off watchID
+    releaseAll fnGood
+    releaseAll fnError
