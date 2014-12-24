@@ -11,4 +11,3 @@ plugins/
 
 # GHCJS build files
 hs/dist/
-www/js/
