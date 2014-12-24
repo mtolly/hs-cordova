@@ -43,7 +43,7 @@ import System.Cordova.EventListener
 ]) %>
 
 foreign import javascript unsafe
-  "navigator.compass.watchHeading($2, $3, $1);"
+  "navigator.compass.watchHeading($2, $3, $1)"
   js_watchHeading
   :: JSRef CompassOptions
   -> JSFun (JSRef CompassHeading -> IO ())

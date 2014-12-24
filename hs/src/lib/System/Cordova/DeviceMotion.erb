@@ -32,7 +32,7 @@ import System.Cordova.EventListener
 ]) %>
 
 foreign import javascript unsafe
-  "navigator.accelerometer.watchAcceleration($2, $3, $1);"
+  "navigator.accelerometer.watchAcceleration($2, $3, $1)"
   js_watchAcceleration
   :: JSRef AccelerometerOptions
   -> JSFun (JSRef Acceleration -> IO ())

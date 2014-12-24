@@ -94,7 +94,7 @@ instance RMarshal.FromJSRef CompassOptions where
     return $ CompassOptions RApp.<$> _x0 RApp.<*> _x1
 
 foreign import javascript unsafe
-  "navigator.compass.watchHeading($2, $3, $1);"
+  "navigator.compass.watchHeading($2, $3, $1)"
   js_watchHeading
   :: JSRef CompassOptions
   -> JSFun (JSRef CompassHeading -> IO ())

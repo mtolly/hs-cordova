@@ -28,7 +28,7 @@ addEventListener str f elt = do
   js_addEventListener (toJSString str) jsfun elt
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
-    releaseAll jsfun
+    -- releaseAll jsfun
 
 addEventListener1 :: String -> (JSRef a -> IO ()) -> JSRef e -> IO (IO ())
 addEventListener1 str f elt = do
@@ -36,7 +36,7 @@ addEventListener1 str f elt = do
   js_addEventListener (toJSString str) jsfun elt
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
-    releaseAll jsfun
+    -- releaseAll jsfun
 
 globalListener
   :: (FromJSRef err, FromJSRef a)
@@ -50,5 +50,5 @@ globalListener on off f = do
   watchID <- on fnGood fnError
   return $ do
     off watchID
-    releaseAll fnGood
-    releaseAll fnError
+    -- releaseAll fnGood
+    -- releaseAll fnError

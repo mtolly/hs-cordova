@@ -60,7 +60,7 @@ instance RMarshal.FromJSRef AccelerometerOptions where
     return $ AccelerometerOptions RApp.<$> _x0
 
 foreign import javascript unsafe
-  "navigator.accelerometer.watchAcceleration($2, $3, $1);"
+  "navigator.accelerometer.watchAcceleration($2, $3, $1)"
   js_watchAcceleration
   :: JSRef AccelerometerOptions
   -> JSFun (JSRef Acceleration -> IO ())

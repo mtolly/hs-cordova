@@ -147,7 +147,7 @@ instance RMarshal.FromJSRef GeolocationOptions where
     return $ GeolocationOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2
 
 foreign import javascript unsafe
-  "navigator.geolocation.watchPosition($2, $3, $1);"
+  "navigator.geolocation.watchPosition($2, $3, $1)"
   js_watchPosition
   :: JSRef GeolocationOptions
   -> JSFun (JSRef Position -> IO ())

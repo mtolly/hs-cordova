@@ -1,28 +1,56 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import System.Cordova.Base
-import System.Cordova.StatusBar
-import System.Cordova.Geolocation
+import qualified System.Cordova.StatusBar as Bar
+import qualified System.Cordova.Device as Dev
+import qualified System.Cordova.Geolocation as Geo
 import Data.Default
 import GHCJS.Types
 import GHCJS.Foreign
+import Data.IORef
 
 main :: IO ()
 main = do
   waitDeviceReady
 
-  overlaysWebView False
-  styleBlackOpaque
-  backgroundColorByName "black"
+  Bar.overlaysWebView False
+  Bar.styleBlackOpaque
+  Bar.backgroundColorByName "black"
 
-  setAttribute "style" "font-size: 20px;" body
+  let new :: String -> String -> IO Element
+      new tag s = do
+        elt <- createElement $ toJSString tag
+        setHTML (toJSString s) elt
+        appendChild elt body
+        return elt
 
-  debug <- createElement "div"
-  appendChild debug body
-  _ <- watchPosition def $ \x -> case x of
-    Left err -> setHTML (toJSString $ show err) debug
-    Right res -> setHTML (toJSString $ show res) debug
+  _ <- new "h1" $ "Device"
+  _ <- new "div" $ "cordova: "  ++ show Dev.cordova
+  _ <- new "div" $ "model: "    ++ show Dev.model
+  _ <- new "div" $ "platform: " ++ show Dev.platform
+  _ <- new "div" $ "uuid: "     ++ show Dev.uuid
+  _ <- new "div" $ "version: "  ++ show Dev.version
+
+  _ <- new "h1" $ "Geolocation"
+  do
+    posn <- new "div" $ "Position here"
+    btn <- new "button" "Update position"
+    onclick btn $ do
+      res <- Geo.getCurrentPosition def
+      setHTML (toJSString $ show res) posn
+    toggle <- new "button" "Start listening"
+    stopper <- newIORef Nothing
+    onclick toggle $ readIORef stopper >>= \case
+      Nothing -> do
+        newStopper <- Geo.watchPosition def $ \res ->
+          setHTML (toJSString $ show res) posn
+        writeIORef stopper $ Just newStopper
+        setHTML "Stop listening" toggle
+      Just oldStopper -> do
+        oldStopper
+        setHTML "Start listening" toggle
 
   return ()
 
@@ -48,3 +76,12 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$3.setAttribute($1, $2);"
   setAttribute :: JSString -> JSString -> Element -> IO ()
+
+foreign import javascript unsafe
+  "$1.onclick = $2;"
+  js_onclick :: Element -> JSFun (IO ()) -> IO ()
+
+onclick :: Element -> IO () -> IO ()
+onclick elt fn = do
+  cb <- asyncCallback (DomRetain $ castRef elt) fn
+  js_onclick elt cb
