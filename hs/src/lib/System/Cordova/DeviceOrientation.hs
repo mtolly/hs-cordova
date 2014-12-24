@@ -10,6 +10,7 @@ module System.Cordova.DeviceOrientation
 
 import GHCJS.Types
 import GHCJS.Marshal
+import Data.Time.Clock
 import System.Cordova.EventListener
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
@@ -31,21 +32,9 @@ data CompassHeading = CompassHeading
   { magneticHeading :: Maybe Double
   , trueHeading :: Maybe Double
   , headingAccuracy :: Maybe Double
-  , timestamp :: Maybe Double
+  , timestamp :: Maybe UTCTime
   } deriving (Eq, Ord, Show, Read)
 instance RDefault.Default CompassHeading where def = CompassHeading RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.ToJSRef CompassHeading where
-  toJSRef opts = do
-    obj <- RForeign.newObj
-    let _setJust s f = case f opts of
-          Nothing -> return ()
-          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
-        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
-    _setJust "magneticHeading" magneticHeading
-    _setJust "trueHeading" trueHeading
-    _setJust "headingAccuracy" headingAccuracy
-    _setJust "timestamp" timestamp
-    return obj
 instance RMarshal.FromJSRef CompassHeading where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "magneticHeading" obj

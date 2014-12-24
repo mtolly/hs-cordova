@@ -64,21 +64,28 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "$1 instanceof Date"
-  js_isDate :: JSRef a -> IO Bool
+  js_isDate :: JSRef a -> Bool
+
+foreign import javascript unsafe
+  "typeof $1 === 'number'"
+  js_isNumber :: JSRef a -> Bool
 
 foreign import javascript unsafe
   "new Date($1)"
   js_epochMilliToDate :: Double -> IO (JSRef UTCTime)
 
+-- | Supports both Date objects and raw numbers (epoch milliseconds)
 instance FromJSRef UTCTime where
-  fromJSRef r = do
-    b <- js_isDate r
-    if b
-      then do
-        milli <- js_dateToEpochMilli r
-        return $ Just $ posixSecondsToUTCTime $ realToFrac $ milli / 1000
-      else return Nothing
+  fromJSRef r
+    | js_isDate r = do
+      milli <- js_dateToEpochMilli r
+      return $ Just $ posixSecondsToUTCTime $ realToFrac $ milli / 1000
+    | js_isNumber r = do
+      milli <- fromJSRef' (castRef r :: JSRef Double)
+      return $ Just $ posixSecondsToUTCTime $ realToFrac $ milli / 1000
+    | otherwise = return Nothing
 
+-- | Creates a Date object
 instance ToJSRef UTCTime where
   toJSRef utc = let
     milli = realToFrac (utcTimeToPOSIXSeconds utc) * 1000

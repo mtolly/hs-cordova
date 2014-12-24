@@ -12,6 +12,7 @@ module System.Cordova.DeviceOrientation
 
 import GHCJS.Types
 import GHCJS.Marshal
+import Data.Time.Clock
 import System.Cordova.EventListener
 <%= hsImports %>
 
@@ -24,8 +25,8 @@ import System.Cordova.EventListener
   Field.new('Maybe Double', 'magneticHeading'),
   Field.new('Maybe Double', 'trueHeading'),
   Field.new('Maybe Double', 'headingAccuracy'),
-  Field.new('Maybe Double', 'timestamp'), # TODO: make this a UTCTime or something
-]) %>
+  Field.new('Maybe UTCTime', 'timestamp'),
+], instanceTo: false) %>
 
 <%= makeRecord('CompassError', [
   Field.new('CompassErrorCode', 'code'),

@@ -62,7 +62,7 @@ class Field
   attr_reader :type, :hsName, :jsName, :hsDoc
 end
 
-def makeRecord(name, fields, instanceDefault: true, hsDoc: nil)
+def makeRecord(name, fields, instanceTo: true, instanceDefault: true, hsDoc: nil)
   lines = []
 
   lines << "-- | #{hsDoc}" if hsDoc
@@ -78,21 +78,23 @@ def makeRecord(name, fields, instanceDefault: true, hsDoc: nil)
     lines << "instance RDefault.Default #{name} where def = #{defaultExprs.join(' ')}"
   end
 
-  lines << "instance RMarshal.ToJSRef #{name} where"
-  lines << "  toJSRef opts = do"
-  lines << "    obj <- RForeign.newObj"
-  lines << "    let _setJust s f = case f opts of"
-  lines << "          Nothing -> return ()"
-  lines << "          Just x -> RMarshal.toJSRef x >>= \\ref -> RForeign.setProp s ref obj"
-  lines << "        _set s f = RMarshal.toJSRef (f opts) >>= \\ref -> RForeign.setProp s ref obj"
-  fields.each do |field|
-    if field.type.start_with? 'Maybe'
-      lines << "    _setJust #{field.jsName.inspect} #{field.hsName}"
-    else
-      lines << "    _set #{field.jsName.inspect} #{field.hsName}"
+  if instanceTo
+    lines << "instance RMarshal.ToJSRef #{name} where"
+    lines << "  toJSRef opts = do"
+    lines << "    obj <- RForeign.newObj"
+    lines << "    let _setJust s f = case f opts of"
+    lines << "          Nothing -> return ()"
+    lines << "          Just x -> RMarshal.toJSRef x >>= \\ref -> RForeign.setProp s ref obj"
+    lines << "        _set s f = RMarshal.toJSRef (f opts) >>= \\ref -> RForeign.setProp s ref obj"
+    fields.each do |field|
+      if field.type.start_with? 'Maybe'
+        lines << "    _setJust #{field.jsName.inspect} #{field.hsName}"
+      else
+        lines << "    _set #{field.jsName.inspect} #{field.hsName}"
+      end
     end
+    lines << "    return obj"
   end
-  lines << "    return obj"
 
   lines << "instance RMarshal.FromJSRef #{name} where"
   lines << "  fromJSRef obj = do"
