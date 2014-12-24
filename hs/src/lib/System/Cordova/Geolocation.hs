@@ -114,8 +114,8 @@ data PositionErrorCode
   | PositionUnavailable
   | Timeout
   deriving (Eq, Ord, Show, Read, Enum, Bounded)
-foreign import javascript unsafe "PositionError.PERMISSIONDENIED" _PositionErrorCode_PermissionDenied :: RTypes.JSRef PositionErrorCode
-foreign import javascript unsafe "PositionError.POSITIONUNAVAILABLE" _PositionErrorCode_PositionUnavailable :: RTypes.JSRef PositionErrorCode
+foreign import javascript unsafe "PositionError.PERMISSION_DENIED" _PositionErrorCode_PermissionDenied :: RTypes.JSRef PositionErrorCode
+foreign import javascript unsafe "PositionError.POSITION_UNAVAILABLE" _PositionErrorCode_PositionUnavailable :: RTypes.JSRef PositionErrorCode
 foreign import javascript unsafe "PositionError.TIMEOUT" _PositionErrorCode_Timeout :: RTypes.JSRef PositionErrorCode
 instance RMarshal.ToJSRef PositionErrorCode where
   toJSRef PermissionDenied = return _PositionErrorCode_PermissionDenied

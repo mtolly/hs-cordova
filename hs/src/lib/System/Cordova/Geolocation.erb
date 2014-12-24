@@ -45,11 +45,11 @@ import Control.Monad ((>=>))
   Field.new('String', 'message'),
 ], instanceDefault: false) %>
 
-<%= makeEnum('PositionErrorCode', %w{
-  PermissionDenied
-  PositionUnavailable
-  Timeout
-}, exprPrefix: 'PositionError.') %>
+<%= makeEnum('PositionErrorCode', [
+  Tag.new('PermissionDenied'   , jsExpr: 'PERMISSION_DENIED'   ),
+  Tag.new('PositionUnavailable', jsExpr: 'POSITION_UNAVAILABLE'),
+  Tag.new('Timeout'            , jsExpr: 'TIMEOUT'             ),
+], exprPrefix: 'PositionError.') %>
 
 <%= makeRecord('GeolocationOptions', [
   Field.new('Maybe Bool', 'enableHighAccuracy'),
