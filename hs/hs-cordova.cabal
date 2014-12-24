@@ -37,11 +37,22 @@ library
     js/hs_util.js
 
 executable hs-cordova-create
-  hs-source-dirs:       src/exe
+  hs-source-dirs:       src/create
   main-is:              Main.hs
   build-depends:
     base >= 4.7 && < 4.8
     , ghcjs-base == 0.1.0.0
     , hs-cordova == 0.1
+  default-language:     Haskell2010
+  ghc-options:          -Wall
+
+executable hs-cordova-test
+  hs-source-dirs:       src/test
+  main-is:              Main.hs
+  build-depends:
+    base >= 4.7 && < 4.8
+    , ghcjs-base == 0.1.0.0
+    , hs-cordova == 0.1
+    , data-default
   default-language:     Haskell2010
   ghc-options:          -Wall
