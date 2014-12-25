@@ -54,5 +54,6 @@ executable hs-cordova-test
     , ghcjs-base == 0.1.0.0
     , hs-cordova == 0.1
     , data-default
+    , time
   default-language:     Haskell2010
   ghc-options:          -Wall

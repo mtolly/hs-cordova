@@ -9,6 +9,7 @@ import qualified System.Cordova.Geolocation as Geo
 import qualified System.Cordova.DeviceOrientation as DO
 import qualified System.Cordova.DeviceMotion as DM
 import qualified System.Cordova.Vibration as Vib
+import qualified System.Cordova.NetworkInformation as Net
 import Data.Default
 import GHCJS.Types
 import GHCJS.Foreign
@@ -20,6 +21,7 @@ import Data.Char (isDigit)
 import Data.Maybe (mapMaybe)
 import Data.List (groupBy)
 import Text.Read (readMaybe)
+import Data.Time.Clock (getCurrentTime)
 
 main :: IO ()
 main = do
@@ -102,6 +104,24 @@ main = do
   void $ do
     btn <- new "button" "Vibrate cancel"
     onclick btn Vib.vibrateCancel
+
+  new_ "h1" "Network Information"
+  void $ do
+    result <- new "div" "Info here"
+    btn <- new "button" "Get connection type"
+    onclick btn $ do
+      res <- Net.connectionType
+      setHTML (toJSString $ show res) result
+  void $ do
+    result <- new "div" "Offline at:"
+    newToggle $ Net.offlineEvent $ do
+      time <- getCurrentTime
+      setHTML (toJSString $ "Offline at: " ++ show time) result
+  void $ do
+    result <- new "div" "Online at:"
+    newToggle $ Net.onlineEvent $ do
+      time <- getCurrentTime
+      setHTML (toJSString $ "Online at: " ++ show time) result
 
 data Element_
 type Element = JSRef Element_
