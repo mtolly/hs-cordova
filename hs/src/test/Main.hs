@@ -31,6 +31,8 @@ main = do
   Bar.styleBlackOpaque
   Bar.backgroundColorByName "black"
 
+  setAttribute "style" "font-family: sans-serif;" body
+
   let new :: String -> String -> IO Element
       new tag s = do
         elt <- createElement $ toJSString tag
