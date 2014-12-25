@@ -3,16 +3,14 @@ require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
 %>
 module System.Cordova.Vibration
 ( vibrate
-, vibrateFor
-, vibratePattern
 , vibrateCancel
 ) where
 
 <%= hsImports %>
 
-<%= jsImport('navigator.vibrate();'  , []       , '()', hsName: 'vibrate'       ) %>
-<%= jsImport('navigator.vibrate($1);', ['Int']  , '()', hsName: 'vibrateFor'    ) %>
-<%= jsImport('navigator.vibrate($1);', ['[Int]'], '()', hsName: 'vibratePattern') %>
+<%= jsImport('navigator.vibrate($1);', ['[Int]'], '()', hsName: 'vibrate') %>
+-- no arg form is deprecated.
+-- single int arg is equivalent to [int].
 
 vibrateCancel :: IO ()
-vibrateCancel = vibrateFor 0
+vibrateCancel = vibrate []

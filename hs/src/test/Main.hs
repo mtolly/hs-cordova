@@ -15,6 +15,11 @@ import GHCJS.Foreign
 import Control.Concurrent.MVar
 import Data.Functor (void)
 import Control.Applicative ((<$>))
+import Data.Function (on)
+import Data.Char (isDigit)
+import Data.Maybe (mapMaybe)
+import Data.List (groupBy)
+import Text.Read (readMaybe)
 
 main :: IO ()
 main = do
@@ -86,24 +91,13 @@ main = do
 
   new_ "h1" "Vibration"
   void $ do
-    btn <- new "button" "Vibrate"
-    onclick btn Vib.vibrate
-  new_ "br" ""
-  void $ do
-    btn <- new "button" "Vibrate for"
-    txt <- new "input" ""
-    setAttribute "type" "text" txt
-    onclick btn $ do
-      int <- read . fromJSString <$> getValue txt
-      Vib.vibrateFor int
-  new_ "br" ""
-  void $ do
     btn <- new "button" "Vibrate pattern"
     txt <- new "input" ""
     setAttribute "type" "text" txt
     onclick btn $ do
-      int <- read . fromJSString <$> getValue txt
-      Vib.vibratePattern int
+      str <- fromJSString <$> getValue txt
+      let ints = mapMaybe readMaybe $ groupBy ((==) `on` isDigit) str
+      Vib.vibrate ints
   new_ "br" ""
   void $ do
     btn <- new "button" "Vibrate cancel"
