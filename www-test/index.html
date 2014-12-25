@@ -11,6 +11,14 @@
     <script language="javascript" src="js/rts.js"></script>
     <script language="javascript" src="js/lib1.js"></script>
     <script language="javascript" src="js/out.js"></script>
+    <script language="javascript" src="lib/fastclick.js"></script>
+    <script language="javascript">
+      if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function() {
+          FastClick.attach(document.body);
+        }, false);
+      }
+    </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script language="javascript">
       h$main(h$mainZCMainzimain);
