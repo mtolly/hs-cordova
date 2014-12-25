@@ -49,11 +49,14 @@ executable hs-cordova-create
 executable hs-cordova-test
   hs-source-dirs:       src/test
   main-is:              Main.hs
+  other-modules:
+    HTMLT
   build-depends:
     base >= 4.7 && < 4.8
     , ghcjs-base == 0.1.0.0
     , hs-cordova == 0.1
     , data-default
     , time
+    , transformers >= 0.4.0.0
   default-language:     Haskell2010
   ghc-options:          -Wall

@@ -11,10 +11,8 @@ import qualified System.Cordova.DeviceMotion as DM
 import qualified System.Cordova.Vibration as Vib
 import qualified System.Cordova.NetworkInformation as Net
 import Data.Default
-import GHCJS.Types
 import GHCJS.Foreign
 import Control.Concurrent.MVar
-import Data.Functor (void)
 import Control.Applicative ((<$>))
 import Data.Function (on)
 import Data.Char (isDigit)
@@ -22,6 +20,9 @@ import Data.Maybe (mapMaybe)
 import Data.List (groupBy)
 import Text.Read (readMaybe)
 import Data.Time.Clock (getCurrentTime)
+import Control.Monad.IO.Class
+
+import HTMLT
 
 main :: IO ()
 main = do
@@ -33,130 +34,98 @@ main = do
 
   setAttribute "style" "font-family: sans-serif;" body
 
-  let new :: String -> String -> IO Element
-      new tag s = do
-        elt <- createElement $ toJSString tag
-        setHTML (toJSString s) elt
-        appendChild elt body
-        return elt
-      new_ :: String -> String -> IO ()
-      new_ tag s = void $ new tag s
-
-  let newToggle :: IO (IO ()) -> IO ()
+  let newToggle :: (MonadIO m) => IO (IO ()) -> HTMLT m ()
       newToggle starter = do
-        stopper <- newMVar Nothing
-        btn <- new "button" "Start listening"
-        onclick btn $ takeMVar stopper >>= \case
-          Nothing -> do
-            newStopper <- starter
-            setHTML "Stop listening" btn
-            putMVar stopper $ Just newStopper
-          Just oldStopper -> do
-            oldStopper
-            setHTML "Start listening" btn
-            putMVar stopper Nothing
+        stopper <- liftIO $ newMVar Nothing
+        "button" </ do
+          btn <- getElement
+          text "Start listening"
+          onclick $ takeMVar stopper >>= \case
+            Nothing -> do
+              newStopper <- starter
+              setHTML "Stop listening" btn
+              putMVar stopper $ Just newStopper
+            Just oldStopper -> do
+              oldStopper
+              setHTML "Start listening" btn
+              putMVar stopper Nothing
 
-  new_ "h1" "Device"
-  new_ "div" $ "cordova: "  ++ show Dev.cordova
-  new_ "div" $ "model: "    ++ show Dev.model
-  new_ "div" $ "platform: " ++ show Dev.platform
-  new_ "div" $ "uuid: "     ++ show Dev.uuid
-  new_ "div" $ "version: "  ++ show Dev.version
+  runHTMLT body $ do
 
-  new_ "h1" "Geolocation"
-  void $ do
-    result <- new "div" $ "Position here"
-    btn <- new "button" "Update position"
-    onclick btn $ do
-      res <- Geo.getCurrentPosition def
-      setHTML (toJSString $ show res) result
-    newToggle $ Geo.watchPosition def $ \res ->
-      setHTML (toJSString $ show res) result
+    "h1" </ text "Device"
+    "table" </ do
+      let row (k, v) = "tr" </ do
+            "td" </ text k
+            "td" </ text v
+      row ("cordova" , show Dev.cordova )
+      row ("model"   , show Dev.model   )
+      row ("platform", show Dev.platform)
+      row ("uuid"    , show Dev.uuid    )
+      row ("version" , show Dev.version )
 
-  new_ "h1" "Device Orientation"
-  void $ do
-    result <- new "div" $ "Direction here"
-    btn <- new "button" "Update direction"
-    onclick btn $ do
-      res <- DO.getCurrentHeading
-      setHTML (toJSString $ show res) result
-    newToggle $ DO.watchHeading def $ \res ->
-      setHTML (toJSString $ show res) result
+    "h1" </ text "Geolocation"
+    do
+      result <- "p" <-/ text "Result here"
+      "button" </ do
+        text "Update"
+        onclick $ do
+          res <- Geo.getCurrentPosition def
+          setHTML (toJSString $ show res) result
+      newToggle $ Geo.watchPosition def $ \res ->
+        setHTML (toJSString $ show res) result
 
-  new_ "h1" "Device Motion"
-  void $ do
-    result <- new "div" $ "Motion here"
-    btn <- new "button" "Update motion"
-    onclick btn $ do
-      res <- DM.getCurrentAcceleration
-      setHTML (toJSString $ show res) result
-    newToggle $ DM.watchAcceleration def $ \res ->
-      setHTML (toJSString $ show res) result
+    "h1" </ text "Device Orientation"
+    do
+      result <- "p" <-/ text "Result here"
+      "button" </ do
+        text "Update"
+        onclick $ do
+          res <- DO.getCurrentHeading
+          setHTML (toJSString $ show res) result
+      newToggle $ DO.watchHeading def $ \res ->
+        setHTML (toJSString $ show res) result
 
-  new_ "h1" "Vibration"
-  void $ do
-    btn <- new "button" "Vibrate pattern"
-    txt <- new "input" ""
-    setAttribute "type" "text" txt
-    onclick btn $ do
-      str <- fromJSString <$> getValue txt
-      let ints = mapMaybe readMaybe $ groupBy ((==) `on` isDigit) str
-      Vib.vibrate ints
-  new_ "br" ""
-  void $ do
-    btn <- new "button" "Vibrate cancel"
-    onclick btn Vib.vibrateCancel
+    "h1" </ text "Device Motion"
+    do
+      result <- "p" <-/ text "Result here"
+      "button" </ do
+        text "Update"
+        onclick $ do
+          res <- DM.getCurrentAcceleration
+          setHTML (toJSString $ show res) result
+      newToggle $ DM.watchAcceleration def $ \res ->
+        setHTML (toJSString $ show res) result
 
-  new_ "h1" "Network Information"
-  void $ do
-    result <- new "div" "Info here"
-    btn <- new "button" "Get connection type"
-    onclick btn $ do
-      res <- Net.connectionType
-      setHTML (toJSString $ show res) result
-  void $ do
-    result <- new "div" "Offline at:"
-    newToggle $ Net.offlineEvent $ do
-      time <- getCurrentTime
-      setHTML (toJSString $ "Offline at: " ++ show time) result
-  void $ do
-    result <- new "div" "Online at:"
-    newToggle $ Net.onlineEvent $ do
-      time <- getCurrentTime
-      setHTML (toJSString $ "Online at: " ++ show time) result
+    "h1" </ text "Vibration"
+    "form" </ do
+      txt <- "input" <-/ do
+        "type" $= "text"
+      "button" </ do
+        text "Vibrate pattern"
+        "type" $= "button"
+        onclick $ do
+          str <- fromJSString <$> getValue txt
+          let ints = mapMaybe readMaybe $ groupBy ((==) `on` isDigit) str
+          Vib.vibrate ints
+    "button" </ do
+      text "Vibrate cancel"
+      onclick Vib.vibrateCancel
 
-data Element_
-type Element = JSRef Element_
-
-foreign import javascript unsafe
-  "document.getElementsByTagName('body')[0]"
-  body :: Element
-
-foreign import javascript unsafe
-  "$2.appendChild($1);"
-  appendChild :: Element -> Element -> IO ()
-
-foreign import javascript unsafe
-  "document.createElement($1)"
-  createElement :: JSString -> IO Element
-
-foreign import javascript unsafe
-  "$2.innerHTML = $1;"
-  setHTML :: JSString -> Element -> IO ()
-
-foreign import javascript unsafe
-  "$3.setAttribute($1, $2);"
-  setAttribute :: JSString -> JSString -> Element -> IO ()
-
-foreign import javascript unsafe
-  "$1.value"
-  getValue :: Element -> IO JSString
-
-foreign import javascript unsafe
-  "$1.onclick = $2;"
-  js_onclick :: Element -> JSFun (IO ()) -> IO ()
-
-onclick :: Element -> IO () -> IO ()
-onclick elt fn = do
-  cb <- asyncCallback (DomRetain $ castRef elt) fn
-  js_onclick elt cb
+    "h1" </ text "Network Information"
+    do
+      result <- "p" <-/ text "Result here"
+      "button" </ do
+        text "Update"
+        onclick $ do
+          res <- Net.connectionType
+          setHTML (toJSString $ show res) result
+    do
+      result <- "p" <-/ text "Offline at:"
+      newToggle $ Net.offlineEvent $ do
+        time <- getCurrentTime
+        setHTML (toJSString $ "Offline at: " ++ show time) result
+    do
+      result <- "p" <-/ text "Online at:"
+      newToggle $ Net.onlineEvent $ do
+        time <- getCurrentTime
+        setHTML (toJSString $ "Online at: " ++ show time) result
