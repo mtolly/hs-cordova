@@ -5,7 +5,7 @@
 
 lines = STDIN.readlines
 new_lines = lines.select do |ln|
-  words = ln.split /\s/
+  words = ln.split /\s+/
   next true unless words[0] == 'import'
   next true unless words[1] == 'qualified'
   next true unless words[3] == 'as'

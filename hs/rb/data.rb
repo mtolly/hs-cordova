@@ -65,21 +65,33 @@ end
 def makeRecord(name, fields, instanceTo: true, instanceDefault: true, hsDoc: nil)
   lines = []
 
+  words = name.split(/\s+/)
+  constructor = words[0]
+  vars = words.select { |word| word.match(/^[a-z]/) }
+
+  def context(tclass, vars)
+    if vars.empty?
+      ""
+    else
+      "(#{ vars.map { |v| tclass + ' ' + v }.join(', ') }) =>"
+    end
+  end
+
   lines << "-- | #{hsDoc}" if hsDoc
-  lines << "data #{name} = #{name}"
+  lines << "#{fields.length == 1 ? 'newtype' : 'data'} #{name} = #{constructor}"
   fields.each_with_index do |field, i|
     lines << "  #{i == 0 ? '{' : ','} #{field.hsName} :: #{field.type}"
     lines << "  -- ^ #{field.hsDoc}" if field.hsDoc
   end
   lines << "  } deriving (Eq, Ord, Show, Read)"
 
-  defaultExprs = [name] + Array.new(fields.length, 'RDefault.def')
+  defaultExprs = [constructor] + Array.new(fields.length, 'RDefault.def')
   if instanceDefault
-    lines << "instance RDefault.Default #{name} where def = #{defaultExprs.join(' ')}"
+    lines << "instance #{context('RDefault.Default', vars)} RDefault.Default (#{name}) where def = #{defaultExprs.join(' ')}"
   end
 
   if instanceTo
-    lines << "instance RMarshal.ToJSRef #{name} where"
+    lines << "instance #{context('RMarshal.ToJSRef', vars)} RMarshal.ToJSRef (#{name}) where"
     lines << "  toJSRef opts = do"
     lines << "    obj <- RForeign.newObj"
     lines << "    let _setJust s f = case f opts of"
@@ -96,7 +108,7 @@ def makeRecord(name, fields, instanceTo: true, instanceDefault: true, hsDoc: nil
     lines << "    return obj"
   end
 
-  lines << "instance RMarshal.FromJSRef #{name} where"
+  lines << "instance #{context('RMarshal.FromJSRef', vars)} RMarshal.FromJSRef (#{name}) where"
   lines << "  fromJSRef obj = do"
   bound = []
   fields.each_with_index do |field, i|
@@ -104,7 +116,7 @@ def makeRecord(name, fields, instanceTo: true, instanceDefault: true, hsDoc: nil
     bound << thisBound
     lines << "    #{thisBound} <- RInternal.fromProp #{field.jsName.inspect} obj"
   end
-  lines << "    return $ #{name} RApp.<$> #{bound.join(' RApp.<*> ')}"
+  lines << "    return $ #{constructor} RApp.<$> #{bound.join(' RApp.<*> ')}"
 
   lines.join("\n")
 end

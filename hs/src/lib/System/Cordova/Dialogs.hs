@@ -41,7 +41,7 @@ data PromptResult = PromptResult
   { buttonIndex :: Int
   , input1 :: String
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef PromptResult where
+instance  RMarshal.ToJSRef (PromptResult) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -51,7 +51,7 @@ instance RMarshal.ToJSRef PromptResult where
     _set "buttonIndex" buttonIndex
     _set "input1" input1
     return obj
-instance RMarshal.FromJSRef PromptResult where
+instance  RMarshal.FromJSRef (PromptResult) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "buttonIndex" obj
     _x1 <- RInternal.fromProp "input1" obj

@@ -32,8 +32,8 @@ data Acceleration = Acceleration
   , accZ :: Maybe Double
   , timestamp :: Maybe UTCTime
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default Acceleration where def = Acceleration RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.FromJSRef Acceleration where
+instance  RDefault.Default (Acceleration) where def = Acceleration RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.FromJSRef (Acceleration) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "x" obj
     _x1 <- RInternal.fromProp "y" obj
@@ -41,11 +41,11 @@ instance RMarshal.FromJSRef Acceleration where
     _x3 <- RInternal.fromProp "timestamp" obj
     return $ Acceleration RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
 
-data AccelerometerOptions = AccelerometerOptions
+newtype AccelerometerOptions = AccelerometerOptions
   { frequency :: Maybe Double
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default AccelerometerOptions where def = AccelerometerOptions RDefault.def
-instance RMarshal.ToJSRef AccelerometerOptions where
+instance  RDefault.Default (AccelerometerOptions) where def = AccelerometerOptions RDefault.def
+instance  RMarshal.ToJSRef (AccelerometerOptions) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -54,7 +54,7 @@ instance RMarshal.ToJSRef AccelerometerOptions where
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
     _setJust "frequency" frequency
     return obj
-instance RMarshal.FromJSRef AccelerometerOptions where
+instance  RMarshal.FromJSRef (AccelerometerOptions) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "frequency" obj
     return $ AccelerometerOptions RApp.<$> _x0

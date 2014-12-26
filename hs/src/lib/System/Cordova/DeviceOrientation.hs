@@ -34,8 +34,8 @@ data CompassHeading = CompassHeading
   , headingAccuracy :: Maybe Double
   , timestamp :: Maybe UTCTime
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default CompassHeading where def = CompassHeading RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.FromJSRef CompassHeading where
+instance  RDefault.Default (CompassHeading) where def = CompassHeading RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.FromJSRef (CompassHeading) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "magneticHeading" obj
     _x1 <- RInternal.fromProp "trueHeading" obj
@@ -43,10 +43,10 @@ instance RMarshal.FromJSRef CompassHeading where
     _x3 <- RInternal.fromProp "timestamp" obj
     return $ CompassHeading RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
 
-data CompassError = CompassError
+newtype CompassError = CompassError
   { code :: CompassErrorCode
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef CompassError where
+instance  RMarshal.ToJSRef (CompassError) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -55,7 +55,7 @@ instance RMarshal.ToJSRef CompassError where
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
     _set "code" code
     return obj
-instance RMarshal.FromJSRef CompassError where
+instance  RMarshal.FromJSRef (CompassError) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "code" obj
     return $ CompassError RApp.<$> _x0
@@ -76,8 +76,8 @@ data CompassOptions = CompassOptions
   { frequency :: Maybe Double
   , watchFilter :: Maybe Double
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default CompassOptions where def = CompassOptions RDefault.def RDefault.def
-instance RMarshal.ToJSRef CompassOptions where
+instance  RDefault.Default (CompassOptions) where def = CompassOptions RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (CompassOptions) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -87,7 +87,7 @@ instance RMarshal.ToJSRef CompassOptions where
     _setJust "frequency" frequency
     _setJust "filter" watchFilter
     return obj
-instance RMarshal.FromJSRef CompassOptions where
+instance  RMarshal.FromJSRef (CompassOptions) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "frequency" obj
     _x1 <- RInternal.fromProp "filter" obj

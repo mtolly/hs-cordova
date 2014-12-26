@@ -20,8 +20,8 @@ data Status = Status
   { level :: Maybe Double
   , isPlugged :: Maybe Bool
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default Status where def = Status RDefault.def RDefault.def
-instance RMarshal.ToJSRef Status where
+instance  RDefault.Default (Status) where def = Status RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (Status) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -31,7 +31,7 @@ instance RMarshal.ToJSRef Status where
     _setJust "level" level
     _setJust "isPlugged" isPlugged
     return obj
-instance RMarshal.FromJSRef Status where
+instance  RMarshal.FromJSRef (Status) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "level" obj
     _x1 <- RInternal.fromProp "isPlugged" obj

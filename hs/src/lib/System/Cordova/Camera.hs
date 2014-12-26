@@ -52,8 +52,8 @@ data CameraOptions = CameraOptions
   , popoverOptions :: Maybe PopoverOptions
   , cameraDirection :: Maybe Direction
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default CameraOptions where def = CameraOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.ToJSRef CameraOptions where
+instance  RDefault.Default (CameraOptions) where def = CameraOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (CameraOptions) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -73,7 +73,7 @@ instance RMarshal.ToJSRef CameraOptions where
     _setJust "popoverOptions" popoverOptions
     _setJust "cameraDirection" cameraDirection
     return obj
-instance RMarshal.FromJSRef CameraOptions where
+instance  RMarshal.FromJSRef (CameraOptions) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "quality" obj
     _x1 <- RInternal.fromProp "destinationType" obj
@@ -171,8 +171,8 @@ data PopoverOptions = PopoverOptions
   , popHeight :: Maybe Double
   , popArrowDir :: Maybe PopoverArrowDirection
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default PopoverOptions where def = PopoverOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.ToJSRef PopoverOptions where
+instance  RDefault.Default (PopoverOptions) where def = PopoverOptions RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (PopoverOptions) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -185,7 +185,7 @@ instance RMarshal.ToJSRef PopoverOptions where
     _setJust "height" popHeight
     _setJust "arrowDir" popArrowDir
     return obj
-instance RMarshal.FromJSRef PopoverOptions where
+instance  RMarshal.FromJSRef (PopoverOptions) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "x" obj
     _x1 <- RInternal.fromProp "y" obj

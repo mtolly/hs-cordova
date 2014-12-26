@@ -176,10 +176,10 @@ instance RMarshal.ToJSRef FileErrorCode where
 instance RMarshal.FromJSRef FileErrorCode where
   fromJSRef = RInternal.js_fromEnum
 
-data FileError = FileError
+newtype FileError = FileError
   { code :: FileErrorCode
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef FileError where
+instance  RMarshal.ToJSRef (FileError) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -188,7 +188,7 @@ instance RMarshal.ToJSRef FileError where
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
     _set "code" code
     return obj
-instance RMarshal.FromJSRef FileError where
+instance  RMarshal.FromJSRef (FileError) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "code" obj
     return $ FileError RApp.<$> _x0
@@ -299,10 +299,10 @@ classifyEntry e
 genericEntry :: Entry a -> Entry ()
 genericEntry = castRef
 
-data Metadata = Metadata
+newtype Metadata = Metadata
   { modificationTime :: UTCTime
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef Metadata where
+instance  RMarshal.ToJSRef (Metadata) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -311,7 +311,7 @@ instance RMarshal.ToJSRef Metadata where
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
     _set "modificationTime" modificationTime
     return obj
-instance RMarshal.FromJSRef Metadata where
+instance  RMarshal.FromJSRef (Metadata) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "modificationTime" obj
     return $ Metadata RApp.<$> _x0

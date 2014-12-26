@@ -1,0 +1,32 @@
+<%
+require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
+%>
+{-# LANGUAGE JavaScriptFFI #-}
+module System.Cordova.Globalization
+( GlobalizationError(..)
+, GlobalizationErrorCode(..)
+, getPreferredLanguage
+) where
+
+<%= hsImports %>
+
+<%= makeRecord('GlobalizationError', [
+  Field.new('GlobalizationErrorCode', 'code'),
+  Field.new('String', 'message'),
+], instanceDefault: false) %>
+
+<%= makeEnum('GlobalizationErrorCode', [
+  Tag.new('UnknownError'   , jsExpr: 'UNKNOWN_ERROR'   ),
+  Tag.new('FormattingError', jsExpr: 'FORMATTING_ERROR'),
+  Tag.new('ParsingError'   , jsExpr: 'PARSING_ERROR'   ),
+  Tag.new('PatternError'   , jsExpr: 'PATTERN_ERROR'   ),
+], exprPrefix: 'GlobalizationError.') %>
+
+<%= makeRecord('Value a', [
+  Field.new('a', 'value'),
+]) %>
+
+<%= jsImport(
+  'navigator.globalization.getPreferredLanguage(hs_good($c), hs_error($c));',
+  [], 'Either GlobalizationError (Value String)',
+) %>

@@ -40,8 +40,8 @@ data Coordinates = Coordinates
   , heading :: Maybe Double
   , speed :: Maybe Double
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default Coordinates where def = Coordinates RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
-instance RMarshal.ToJSRef Coordinates where
+instance  RDefault.Default (Coordinates) where def = Coordinates RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (Coordinates) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -56,7 +56,7 @@ instance RMarshal.ToJSRef Coordinates where
     _setJust "heading" heading
     _setJust "speed" speed
     return obj
-instance RMarshal.FromJSRef Coordinates where
+instance  RMarshal.FromJSRef (Coordinates) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "latitude" obj
     _x1 <- RInternal.fromProp "longitude" obj
@@ -71,7 +71,7 @@ data Position = Position
   { coords :: Coordinates
   , timestamp :: UTCTime
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef Position where
+instance  RMarshal.ToJSRef (Position) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -81,7 +81,7 @@ instance RMarshal.ToJSRef Position where
     _set "coords" coords
     _set "timestamp" timestamp
     return obj
-instance RMarshal.FromJSRef Position where
+instance  RMarshal.FromJSRef (Position) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "coords" obj
     _x1 <- RInternal.fromProp "timestamp" obj
@@ -91,7 +91,7 @@ data PositionError = PositionError
   { code :: PositionErrorCode
   , message :: String
   } deriving (Eq, Ord, Show, Read)
-instance RMarshal.ToJSRef PositionError where
+instance  RMarshal.ToJSRef (PositionError) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -101,7 +101,7 @@ instance RMarshal.ToJSRef PositionError where
     _set "code" code
     _set "message" message
     return obj
-instance RMarshal.FromJSRef PositionError where
+instance  RMarshal.FromJSRef (PositionError) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "code" obj
     _x1 <- RInternal.fromProp "message" obj
@@ -127,8 +127,8 @@ data GeolocationOptions = GeolocationOptions
   , timeout :: Maybe Double
   , maximumAge :: Maybe Double
   } deriving (Eq, Ord, Show, Read)
-instance RDefault.Default GeolocationOptions where def = GeolocationOptions RDefault.def RDefault.def RDefault.def
-instance RMarshal.ToJSRef GeolocationOptions where
+instance  RDefault.Default (GeolocationOptions) where def = GeolocationOptions RDefault.def RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (GeolocationOptions) where
   toJSRef opts = do
     obj <- RForeign.newObj
     let _setJust s f = case f opts of
@@ -139,7 +139,7 @@ instance RMarshal.ToJSRef GeolocationOptions where
     _setJust "timeout" timeout
     _setJust "maximumAge" maximumAge
     return obj
-instance RMarshal.FromJSRef GeolocationOptions where
+instance  RMarshal.FromJSRef (GeolocationOptions) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp "enableHighAccuracy" obj
     _x1 <- RInternal.fromProp "timeout" obj
