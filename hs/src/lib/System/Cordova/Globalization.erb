@@ -5,9 +5,23 @@ require File.expand_path(File.dirname(__FILE__) + '/../../../../rb/data.rb')
 module System.Cordova.Globalization
 ( GlobalizationError(..)
 , GlobalizationErrorCode(..)
+, Value(..)
 , getPreferredLanguage
+, getLocaleName
+, getFirstDayOfWeek
+, DST(..), isDayLightSavingsTime
+, NumStrOptions(..) , NumType(..), stringToNumber, numberToString
+, DateStrOptions(..), FormatLength(..), Selector(..), dateToString, stringToDate
+, NameType(..), Item(..), DateNameOptions(..), getDateNames
+, CurrencyPattern(..), getCurrencyPattern
+, DatePattern(..), getDatePattern
+, NumberPattern(..), getNumberPattern
 ) where
 
+import Data.Time.Clock
+import Data.Time.LocalTime
+import Data.Time.Calendar
+import Data.Maybe (fromMaybe)
 <%= hsImports %>
 
 <%= makeRecord('GlobalizationError', [
@@ -29,4 +43,153 @@ module System.Cordova.Globalization
 <%= jsImport(
   'navigator.globalization.getPreferredLanguage(hs_good($c), hs_error($c));',
   [], 'Either GlobalizationError (Value String)',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.getLocaleName(hs_good($c), hs_error($c));',
+  [], 'Either GlobalizationError (Value String)',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.dateToString($1, hs_good($c), hs_error($c), $2);',
+  ['UTCTime', 'DateStrOptions'], 'Either GlobalizationError (Value String)',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.getCurrencyPattern($1, hs_good($c), hs_error($c));',
+  ['String'], 'Either GlobalizationError CurrencyPattern',
+) %>
+
+<%= makeRecord('CurrencyPattern', [
+  Field.new('String', 'cPattern', jsName: 'pattern'),
+  Field.new('String', 'cCode', jsName: 'code'),
+  Field.new('Int', 'cFraction', jsName: 'fraction'),
+  Field.new('Double', 'cRounding', jsName: 'rounding'),
+  Field.new('String', 'cDecimal', jsName: 'decimal'),
+  Field.new('String', 'cGrouping', jsName: 'grouping'),
+], instanceDefault: false) %>
+
+<%= makeEnum('NameType', [
+  Tag.new('Narrow', jsExpr: '"narrow"'),
+  Tag.new('Wide'  , jsExpr: '"wide"'  ),
+]) %>
+
+<%= makeEnum('Item', [
+  Tag.new('Months', jsExpr: '"months"'),
+  Tag.new('Days'  , jsExpr: '"days"'  ),
+]) %>
+
+<%= makeRecord('DateNameOptions', [
+  Field.new('Maybe NameType', 'nameType'),
+  Field.new('Maybe Item', 'item'),
+]) %>
+
+<%= jsImport(
+  'navigator.globalization.getDateNames(hs_good($c), hs_error($c), $1);',
+  ['DateNameOptions'], 'Either GlobalizationError (Value [String])',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.getDatePattern(hs_good($c), hs_error($c), $1);',
+  ['DateStrOptions'], 'Either GlobalizationError DatePattern',
+) %>
+
+<%= makeRecord('DatePattern', [
+  Field.new('String', 'dPattern', jsName: 'pattern'),
+  Field.new('String', 'dTimezone', jsName: 'timezone'),
+  Field.new('Double', 'dUTCOffset', jsName: 'utc_offset'),
+  Field.new('Double', 'dDSTOffset', jsName: 'dst_offset'),
+], instanceDefault: false) %>
+
+<%= jsImport(
+  'navigator.globalization.getFirstDayOfWeek(hs_good($c), hs_error($c));',
+  [], 'Either GlobalizationError (Value Int)',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.getNumberPattern(hs_good($c), hs_error($c), $1);',
+  ['NumStrOptions'], 'Either GlobalizationError NumberPattern',
+) %>
+
+<%= makeRecord('NumberPattern', [
+  Field.new('String', 'nPattern' , jsName: 'pattern'),
+  Field.new('String', 'nSymbol'  , jsName: 'code'),
+  Field.new('Int'   , 'nFraction', jsName: 'fraction'),
+  Field.new('Double', 'nRounding', jsName: 'rounding'),
+  Field.new('String', 'nPositive', jsName: 'positive'),
+  Field.new('String', 'nNegative', jsName: 'negative'),
+  Field.new('String', 'nDecimal' , jsName: 'decimal'),
+  Field.new('String', 'nGrouping', jsName: 'grouping'),
+], instanceDefault: false) %>
+
+<%= makeRecord('DST', [
+  Field.new('Bool', 'dst'),
+], instanceDefault: false) %>
+
+<%= jsImport(
+  'navigator.globalization.isDayLightSavingsTime($1, hs_good($c), hs_error($c));',
+  ['UTCTime'], 'Either GlobalizationError DST',
+) %>
+
+<%= jsImport(
+  'navigator.globalization.numberToString($1, hs_good($c), hs_error($c), $2);',
+  ['Double', 'NumStrOptions'], 'Either GlobalizationError (Value String)',
+) %>
+
+<%= makeEnum('FormatLength', [
+  Tag.new('Short' , jsExpr: '"short"'  ),
+  Tag.new('Medium', jsExpr: '"medium"' ),
+  Tag.new('Long'  , jsExpr: '"long"'   ),
+  Tag.new('Full'  , jsExpr: '"full"'   ),
+]) %>
+
+<%= makeEnum('Selector', [
+  Tag.new('Date'       , jsExpr: '"date"'         ),
+  Tag.new('Time'       , jsExpr: '"time"'         ),
+  Tag.new('DateAndTime', jsExpr: '"date and time"'),
+]) %>
+
+<%= makeRecord('DateStrOptions', [
+  Field.new('Maybe FormatLength', 'formatLength'),
+  Field.new('Maybe Selector', 'selector'),
+]) %>
+
+<%= makeRecord('CordovaTime', [
+  Field.new('Int', 'year'),
+  Field.new('Int', 'month'),
+  Field.new('Int', 'day'),
+  Field.new('Int', 'hour'),
+  Field.new('Int', 'minute'),
+  Field.new('Int', 'second'),
+  Field.new('Maybe Int', 'millisecond'),
+]) %>
+
+<%= jsImport(
+  'navigator.globalization.stringToDate($1, hs_good($c), hs_error($c), $2);',
+  ['String', 'DateStrOptions'], 'Either GlobalizationError CordovaTime',
+  hsName: 'stringToDate_cordova',
+) %>
+
+stringToDate :: String -> DateStrOptions -> IO (Either GlobalizationError LocalTime)
+stringToDate s opts = fmap (fmap corToHs) $ stringToDate_cordova s opts where
+  corToHs cortime = let
+    tod = TimeOfDay (hour cortime) (minute cortime) secs
+    secs = fromIntegral (second cortime) +
+      fromIntegral (fromMaybe 0 $ millisecond cortime) / 1000
+    localday = fromGregorian (fromIntegral $ year cortime) (month cortime) (day cortime)
+    in LocalTime localday tod
+
+<%= makeRecord('NumStrOptions', [
+  Field.new('Maybe NumType', 'numType', jsName: 'type'),
+]) %>
+
+<%= makeEnum('NumType', [
+  Tag.new('Decimal' , jsExpr: '"decimal"' ),
+  Tag.new('Percent' , jsExpr: '"percent"' ),
+  Tag.new('Currency', jsExpr: '"currency"'),
+]) %>
+
+<%= jsImport(
+  'navigator.globalization.stringToNumber($1, hs_good($c), hs_error($c), $2);',
+  ['String', 'NumStrOptions'], 'Either GlobalizationError (Value Double)',
 ) %>

@@ -3,9 +3,23 @@
 module System.Cordova.Globalization
 ( GlobalizationError(..)
 , GlobalizationErrorCode(..)
+, Value(..)
 , getPreferredLanguage
+, getLocaleName
+, getFirstDayOfWeek
+, DST(..), isDayLightSavingsTime
+, NumStrOptions(..) , NumType(..), stringToNumber, numberToString
+, DateStrOptions(..), FormatLength(..), Selector(..), dateToString, stringToDate
+, NameType(..), Item(..), DateNameOptions(..), getDateNames
+, CurrencyPattern(..), getCurrencyPattern
+, DatePattern(..), getDatePattern
+, NumberPattern(..), getNumberPattern
 ) where
 
+import Data.Time.Clock
+import Data.Time.LocalTime
+import Data.Time.Calendar
+import Data.Maybe (fromMaybe)
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
@@ -76,4 +90,395 @@ foreign import javascript interruptible
 getPreferredLanguage ::  IO (Either GlobalizationError (Value String))
 getPreferredLanguage  =  do
   res <- js_getPreferredLanguage 
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.getLocaleName(hs_good($c), hs_error($c));"
+  js_getLocaleName ::  IO (RInternal.JSEitherRef GlobalizationError (Value String))
+getLocaleName ::  IO (Either GlobalizationError (Value String))
+getLocaleName  =  do
+  res <- js_getLocaleName 
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.dateToString($1, hs_good($c), hs_error($c), $2);"
+  js_dateToString :: RTypes.JSRef (UTCTime) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value String))
+dateToString :: UTCTime -> DateStrOptions -> IO (Either GlobalizationError (Value String))
+dateToString arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_dateToString arg0' arg1'
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.getCurrencyPattern($1, hs_good($c), hs_error($c));"
+  js_getCurrencyPattern :: RTypes.JSRef (String) -> IO (RInternal.JSEitherRef GlobalizationError CurrencyPattern)
+getCurrencyPattern :: String -> IO (Either GlobalizationError CurrencyPattern)
+getCurrencyPattern arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_getCurrencyPattern arg0'
+  RInternal.fromJSEitherRef res
+
+data CurrencyPattern = CurrencyPattern
+  { cPattern :: String
+  , cCode :: String
+  , cFraction :: Int
+  , cRounding :: Double
+  , cDecimal :: String
+  , cGrouping :: String
+  } deriving (Eq, Ord, Show, Read)
+instance  RMarshal.ToJSRef (CurrencyPattern) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _set "pattern" cPattern
+    _set "code" cCode
+    _set "fraction" cFraction
+    _set "rounding" cRounding
+    _set "decimal" cDecimal
+    _set "grouping" cGrouping
+    return obj
+instance  RMarshal.FromJSRef (CurrencyPattern) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "pattern" obj
+    _x1 <- RInternal.fromProp "code" obj
+    _x2 <- RInternal.fromProp "fraction" obj
+    _x3 <- RInternal.fromProp "rounding" obj
+    _x4 <- RInternal.fromProp "decimal" obj
+    _x5 <- RInternal.fromProp "grouping" obj
+    return $ CurrencyPattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5
+
+data NameType
+  = Narrow
+  | Wide
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "\"narrow\"" _NameType_Narrow :: RTypes.JSRef NameType
+foreign import javascript unsafe "\"wide\"" _NameType_Wide :: RTypes.JSRef NameType
+instance RMarshal.ToJSRef NameType where
+  toJSRef Narrow = return _NameType_Narrow
+  toJSRef Wide = return _NameType_Wide
+instance RMarshal.FromJSRef NameType where
+  fromJSRef = RInternal.js_fromEnum
+
+data Item
+  = Months
+  | Days
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "\"months\"" _Item_Months :: RTypes.JSRef Item
+foreign import javascript unsafe "\"days\"" _Item_Days :: RTypes.JSRef Item
+instance RMarshal.ToJSRef Item where
+  toJSRef Months = return _Item_Months
+  toJSRef Days = return _Item_Days
+instance RMarshal.FromJSRef Item where
+  fromJSRef = RInternal.js_fromEnum
+
+data DateNameOptions = DateNameOptions
+  { nameType :: Maybe NameType
+  , item :: Maybe Item
+  } deriving (Eq, Ord, Show, Read)
+instance  RDefault.Default (DateNameOptions) where def = DateNameOptions RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (DateNameOptions) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _setJust "nameType" nameType
+    _setJust "item" item
+    return obj
+instance  RMarshal.FromJSRef (DateNameOptions) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "nameType" obj
+    _x1 <- RInternal.fromProp "item" obj
+    return $ DateNameOptions RApp.<$> _x0 RApp.<*> _x1
+
+foreign import javascript interruptible
+  "navigator.globalization.getDateNames(hs_good($c), hs_error($c), $1);"
+  js_getDateNames :: RTypes.JSRef (DateNameOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value [String]))
+getDateNames :: DateNameOptions -> IO (Either GlobalizationError (Value [String]))
+getDateNames arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_getDateNames arg0'
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.getDatePattern(hs_good($c), hs_error($c), $1);"
+  js_getDatePattern :: RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError DatePattern)
+getDatePattern :: DateStrOptions -> IO (Either GlobalizationError DatePattern)
+getDatePattern arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_getDatePattern arg0'
+  RInternal.fromJSEitherRef res
+
+data DatePattern = DatePattern
+  { dPattern :: String
+  , dTimezone :: String
+  , dUTCOffset :: Double
+  , dDSTOffset :: Double
+  } deriving (Eq, Ord, Show, Read)
+instance  RMarshal.ToJSRef (DatePattern) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _set "pattern" dPattern
+    _set "timezone" dTimezone
+    _set "utc_offset" dUTCOffset
+    _set "dst_offset" dDSTOffset
+    return obj
+instance  RMarshal.FromJSRef (DatePattern) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "pattern" obj
+    _x1 <- RInternal.fromProp "timezone" obj
+    _x2 <- RInternal.fromProp "utc_offset" obj
+    _x3 <- RInternal.fromProp "dst_offset" obj
+    return $ DatePattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
+
+foreign import javascript interruptible
+  "navigator.globalization.getFirstDayOfWeek(hs_good($c), hs_error($c));"
+  js_getFirstDayOfWeek ::  IO (RInternal.JSEitherRef GlobalizationError (Value Int))
+getFirstDayOfWeek ::  IO (Either GlobalizationError (Value Int))
+getFirstDayOfWeek  =  do
+  res <- js_getFirstDayOfWeek 
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.getNumberPattern(hs_good($c), hs_error($c), $1);"
+  js_getNumberPattern :: RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError NumberPattern)
+getNumberPattern :: NumStrOptions -> IO (Either GlobalizationError NumberPattern)
+getNumberPattern arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_getNumberPattern arg0'
+  RInternal.fromJSEitherRef res
+
+data NumberPattern = NumberPattern
+  { nPattern :: String
+  , nSymbol :: String
+  , nFraction :: Int
+  , nRounding :: Double
+  , nPositive :: String
+  , nNegative :: String
+  , nDecimal :: String
+  , nGrouping :: String
+  } deriving (Eq, Ord, Show, Read)
+instance  RMarshal.ToJSRef (NumberPattern) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _set "pattern" nPattern
+    _set "code" nSymbol
+    _set "fraction" nFraction
+    _set "rounding" nRounding
+    _set "positive" nPositive
+    _set "negative" nNegative
+    _set "decimal" nDecimal
+    _set "grouping" nGrouping
+    return obj
+instance  RMarshal.FromJSRef (NumberPattern) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "pattern" obj
+    _x1 <- RInternal.fromProp "code" obj
+    _x2 <- RInternal.fromProp "fraction" obj
+    _x3 <- RInternal.fromProp "rounding" obj
+    _x4 <- RInternal.fromProp "positive" obj
+    _x5 <- RInternal.fromProp "negative" obj
+    _x6 <- RInternal.fromProp "decimal" obj
+    _x7 <- RInternal.fromProp "grouping" obj
+    return $ NumberPattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6 RApp.<*> _x7
+
+newtype DST = DST
+  { dst :: Bool
+  } deriving (Eq, Ord, Show, Read)
+instance  RMarshal.ToJSRef (DST) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _set "dst" dst
+    return obj
+instance  RMarshal.FromJSRef (DST) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "dst" obj
+    return $ DST RApp.<$> _x0
+
+foreign import javascript interruptible
+  "navigator.globalization.isDayLightSavingsTime($1, hs_good($c), hs_error($c));"
+  js_isDayLightSavingsTime :: RTypes.JSRef (UTCTime) -> IO (RInternal.JSEitherRef GlobalizationError DST)
+isDayLightSavingsTime :: UTCTime -> IO (Either GlobalizationError DST)
+isDayLightSavingsTime arg0 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  res <- js_isDayLightSavingsTime arg0'
+  RInternal.fromJSEitherRef res
+
+foreign import javascript interruptible
+  "navigator.globalization.numberToString($1, hs_good($c), hs_error($c), $2);"
+  js_numberToString :: RTypes.JSRef (Double) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value String))
+numberToString :: Double -> NumStrOptions -> IO (Either GlobalizationError (Value String))
+numberToString arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_numberToString arg0' arg1'
+  RInternal.fromJSEitherRef res
+
+data FormatLength
+  = Short
+  | Medium
+  | Long
+  | Full
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "\"short\"" _FormatLength_Short :: RTypes.JSRef FormatLength
+foreign import javascript unsafe "\"medium\"" _FormatLength_Medium :: RTypes.JSRef FormatLength
+foreign import javascript unsafe "\"long\"" _FormatLength_Long :: RTypes.JSRef FormatLength
+foreign import javascript unsafe "\"full\"" _FormatLength_Full :: RTypes.JSRef FormatLength
+instance RMarshal.ToJSRef FormatLength where
+  toJSRef Short = return _FormatLength_Short
+  toJSRef Medium = return _FormatLength_Medium
+  toJSRef Long = return _FormatLength_Long
+  toJSRef Full = return _FormatLength_Full
+instance RMarshal.FromJSRef FormatLength where
+  fromJSRef = RInternal.js_fromEnum
+
+data Selector
+  = Date
+  | Time
+  | DateAndTime
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "\"date\"" _Selector_Date :: RTypes.JSRef Selector
+foreign import javascript unsafe "\"time\"" _Selector_Time :: RTypes.JSRef Selector
+foreign import javascript unsafe "\"date and time\"" _Selector_DateAndTime :: RTypes.JSRef Selector
+instance RMarshal.ToJSRef Selector where
+  toJSRef Date = return _Selector_Date
+  toJSRef Time = return _Selector_Time
+  toJSRef DateAndTime = return _Selector_DateAndTime
+instance RMarshal.FromJSRef Selector where
+  fromJSRef = RInternal.js_fromEnum
+
+data DateStrOptions = DateStrOptions
+  { formatLength :: Maybe FormatLength
+  , selector :: Maybe Selector
+  } deriving (Eq, Ord, Show, Read)
+instance  RDefault.Default (DateStrOptions) where def = DateStrOptions RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (DateStrOptions) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _setJust "formatLength" formatLength
+    _setJust "selector" selector
+    return obj
+instance  RMarshal.FromJSRef (DateStrOptions) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "formatLength" obj
+    _x1 <- RInternal.fromProp "selector" obj
+    return $ DateStrOptions RApp.<$> _x0 RApp.<*> _x1
+
+data CordovaTime = CordovaTime
+  { year :: Int
+  , month :: Int
+  , day :: Int
+  , hour :: Int
+  , minute :: Int
+  , second :: Int
+  , millisecond :: Maybe Int
+  } deriving (Eq, Ord, Show, Read)
+instance  RDefault.Default (CordovaTime) where def = CordovaTime RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def RDefault.def
+instance  RMarshal.ToJSRef (CordovaTime) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _set "year" year
+    _set "month" month
+    _set "day" day
+    _set "hour" hour
+    _set "minute" minute
+    _set "second" second
+    _setJust "millisecond" millisecond
+    return obj
+instance  RMarshal.FromJSRef (CordovaTime) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "year" obj
+    _x1 <- RInternal.fromProp "month" obj
+    _x2 <- RInternal.fromProp "day" obj
+    _x3 <- RInternal.fromProp "hour" obj
+    _x4 <- RInternal.fromProp "minute" obj
+    _x5 <- RInternal.fromProp "second" obj
+    _x6 <- RInternal.fromProp "millisecond" obj
+    return $ CordovaTime RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6
+
+foreign import javascript interruptible
+  "navigator.globalization.stringToDate($1, hs_good($c), hs_error($c), $2);"
+  js_stringToDate_cordova :: RTypes.JSRef (String) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError CordovaTime)
+stringToDate_cordova :: String -> DateStrOptions -> IO (Either GlobalizationError CordovaTime)
+stringToDate_cordova arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_stringToDate_cordova arg0' arg1'
+  RInternal.fromJSEitherRef res
+
+stringToDate :: String -> DateStrOptions -> IO (Either GlobalizationError LocalTime)
+stringToDate s opts = fmap (fmap corToHs) $ stringToDate_cordova s opts where
+  corToHs cortime = let
+    tod = TimeOfDay (hour cortime) (minute cortime) secs
+    secs = fromIntegral (second cortime) +
+      fromIntegral (fromMaybe 0 $ millisecond cortime) / 1000
+    localday = fromGregorian (fromIntegral $ year cortime) (month cortime) (day cortime)
+    in LocalTime localday tod
+
+newtype NumStrOptions = NumStrOptions
+  { numType :: Maybe NumType
+  } deriving (Eq, Ord, Show, Read)
+instance  RDefault.Default (NumStrOptions) where def = NumStrOptions RDefault.def
+instance  RMarshal.ToJSRef (NumStrOptions) where
+  toJSRef opts = do
+    obj <- RForeign.newObj
+    let _setJust s f = case f opts of
+          Nothing -> return ()
+          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
+        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
+    _setJust "type" numType
+    return obj
+instance  RMarshal.FromJSRef (NumStrOptions) where
+  fromJSRef obj = do
+    _x0 <- RInternal.fromProp "type" obj
+    return $ NumStrOptions RApp.<$> _x0
+
+data NumType
+  = Decimal
+  | Percent
+  | Currency
+  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+foreign import javascript unsafe "\"decimal\"" _NumType_Decimal :: RTypes.JSRef NumType
+foreign import javascript unsafe "\"percent\"" _NumType_Percent :: RTypes.JSRef NumType
+foreign import javascript unsafe "\"currency\"" _NumType_Currency :: RTypes.JSRef NumType
+instance RMarshal.ToJSRef NumType where
+  toJSRef Decimal = return _NumType_Decimal
+  toJSRef Percent = return _NumType_Percent
+  toJSRef Currency = return _NumType_Currency
+instance RMarshal.FromJSRef NumType where
+  fromJSRef = RInternal.js_fromEnum
+
+foreign import javascript interruptible
+  "navigator.globalization.stringToNumber($1, hs_good($c), hs_error($c), $2);"
+  js_stringToNumber :: RTypes.JSRef (String) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value Double))
+stringToNumber :: String -> NumStrOptions -> IO (Either GlobalizationError (Value Double))
+stringToNumber arg0 arg1 =  do
+  arg0' <- RMarshal.toJSRef arg0
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_stringToNumber arg0' arg1'
   RInternal.fromJSEitherRef res
