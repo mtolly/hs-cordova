@@ -11,9 +11,7 @@ import qualified System.Cordova.DeviceMotion as DM
 import qualified System.Cordova.Vibration as Vib
 import qualified System.Cordova.NetworkInformation as Net
 import Data.Default (def)
-import GHCJS.Foreign
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
-import Control.Applicative ((<$>))
 import Data.Function (on)
 import Data.Char (isDigit)
 import Data.Maybe (mapMaybe)
@@ -32,7 +30,7 @@ main = do
   Bar.styleBlackOpaque
   Bar.backgroundColorByName "black"
 
-  setAttribute "style" "font-family: sans-serif;" body
+  runHTMLT body $ "style" $= "font-family: sans-serif;"
 
   let toggle :: (MonadIO m) => IO (IO ()) -> HTMLT m ()
       toggle starter = do
@@ -43,11 +41,11 @@ main = do
           onclick $ takeMVar stopper >>= \case
             Nothing -> do
               newStopper <- starter
-              setHTML "Stop listening" btn
+              runHTMLT btn $ setHTML "Stop listening"
               putMVar stopper $ Just newStopper
             Just oldStopper -> do
               oldStopper
-              setHTML "Start listening" btn
+              runHTMLT btn $ setHTML "Start listening"
               putMVar stopper Nothing
 
       button :: (MonadIO m) => HTMLT m a -> HTMLT m a
@@ -77,33 +75,33 @@ main = do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- Geo.getCurrentPosition def
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
       toggle $ Geo.watchPosition def $ \res ->
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
 
     "h1" </ text "Device Orientation"
     do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- DO.getCurrentHeading
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
       toggle $ DO.watchHeading def $ \res ->
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
 
     "h1" </ text "Device Motion"
     do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- DM.getCurrentAcceleration
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
       toggle $ DM.watchAcceleration def $ \res ->
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
 
     "h1" </ text "Vibration"
     "form" </ do
       txt <- textBox
       action "Vibrate pattern" $ do
-        str <- fromJSString <$> getValue txt
+        str <- runHTMLT txt getValue
         let ints = mapMaybe readMaybe $ groupBy ((==) `on` isDigit) str
         Vib.vibrate ints
     action "Vibrate cancel" Vib.vibrateCancel
@@ -113,17 +111,17 @@ main = do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- Net.connectionType
-        setHTML (toJSString $ show res) result
+        runHTMLT result $ setHTML $ show res
     do
       result <- "p" <-/ text "Offline at:"
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
-        setHTML (toJSString $ "Offline at: " ++ show time) result
+        runHTMLT result $ setHTML $ "Offline at: " ++ show time
     do
       result <- "p" <-/ text "Online at:"
       toggle $ Net.onlineEvent $ do
         time <- getCurrentTime
-        setHTML (toJSString $ "Online at: " ++ show time) result
+        runHTMLT result $ setHTML $ "Online at: " ++ show time
 
     "h1" </ text "Status Bar"
     action "Overlay web view" $ Bar.overlaysWebView True
@@ -136,16 +134,16 @@ main = do
       txt <- textBox
       button $ do
         text "Set background color by name"
-        onclick $ getValue txt >>= Bar.backgroundColorByName . fromJSString
+        onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByName
     "form" </ do
       txt <- textBox
       button $ do
         text "Set background color by hex string"
-        onclick $ getValue txt >>= Bar.backgroundColorByHexString . fromJSString
+        onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByHexString
     do
       result <- "p" <-/ text "Result here"
       let update = do
             b <- Bar.isVisible
-            setHTML (toJSString $ "Visible: " ++ show b) result
+            runHTMLT result $ setHTML $ "Visible: " ++ show b
       action "Hide" $ Bar.hideBar >> update
       action "Show" $ Bar.showBar >> update

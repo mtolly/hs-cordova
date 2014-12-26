@@ -4,19 +4,21 @@ module HTMLT
 , Element
 , body
 , runHTMLT
-, text
-, (</), (<-/)
-, onclick
+, inside
 , getElement
+, text
+, (</)
+, (<-/)
 , ($=)
+, onclick
 , setHTML
-, setAttribute
 , getValue
 ) where
 
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 import Control.Applicative
+import Control.Monad
 import Control.Monad.Trans.Reader
 import GHCJS.Types
 import GHCJS.Foreign
@@ -34,6 +36,9 @@ foreign import javascript unsafe
 runHTMLT :: (Monad m) => Element -> HTMLT m a -> m a
 runHTMLT elt act = runReaderT (unHTMLT act) elt
 
+inside :: (Monad m) => Element -> HTMLT m a -> HTMLT m a
+inside elt act = HTMLT $ withReaderT (const elt) $ unHTMLT act
+
 getElement :: (Monad m) => HTMLT m Element
 getElement = HTMLT ask
 
@@ -43,7 +48,7 @@ text s = getElement >>= liftIO . appendHTML (toJSString s)
 (</) :: (MonadIO m) => String -> HTMLT m a -> HTMLT m a
 tag </ sub = do
   child  <- liftIO $ createElement $ toJSString tag
-  result <- HTMLT $ withReaderT (const child) $ unHTMLT sub
+  result <- inside child sub
   parent <- getElement
   liftIO $ appendChild child parent
   return result
@@ -71,7 +76,10 @@ infixr 0 $=
 
 foreign import javascript unsafe
   "$2.innerHTML = $1;"
-  setHTML :: JSString -> Element -> IO ()
+  js_setHTML :: JSString -> Element -> IO ()
+
+setHTML :: (MonadIO m) => String -> HTMLT m ()
+setHTML s = getElement >>= liftIO . js_setHTML (toJSString s)
 
 foreign import javascript unsafe
   "$2.innerHTML += $1;"
@@ -79,16 +87,18 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "$1.value"
-  getValue :: Element -> IO JSString
+  js_getValue :: Element -> IO JSString
+
+getValue :: (MonadIO m) => HTMLT m String
+getValue = liftM fromJSString $ getElement >>= liftIO . js_getValue
 
 foreign import javascript unsafe
   "$1.onclick = $2;"
   js_onclick :: Element -> JSFun (IO ()) -> IO ()
 
-onclick' :: Element -> IO () -> IO ()
-onclick' elt fn = do
-  cb <- asyncCallback (DomRetain $ castRef elt) fn
-  js_onclick elt cb
-
 onclick :: (MonadIO m) => IO () -> HTMLT m ()
-onclick act = getElement >>= \e -> liftIO $ onclick' e act
+onclick act = do
+  elt <- getElement
+  liftIO $ do
+    cb <- asyncCallback (DomRetain $ castRef elt) act
+    js_onclick elt cb
