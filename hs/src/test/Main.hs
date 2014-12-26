@@ -11,6 +11,7 @@ import qualified System.Cordova.DeviceMotion as DM
 import qualified System.Cordova.Vibration as Vib
 import qualified System.Cordova.NetworkInformation as Net
 import qualified System.Cordova.BatteryStatus as Bat
+import qualified System.Cordova.Camera as Cam
 import Data.Default (def)
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
 import Data.Function (on)
@@ -20,6 +21,7 @@ import Data.List (groupBy)
 import Text.Read (readMaybe)
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad (forM_, liftM2)
 
 import HTMLT
 
@@ -77,7 +79,7 @@ main = do
       row ("uuid"    , show Dev.uuid    )
       row ("version" , show Dev.version )
 
-    let spaceStatus get watch = do
+    let spaceStatus get watch = "form" </ do
           result <- "p" <-/ text "Status here"
           let update = runHTMLT result . setHTML . show
           action "Update" $ get >>= update
@@ -102,18 +104,18 @@ main = do
     action "Vibrate cancel" Vib.vibrateCancel
 
     "h1" </ text "Network Information"
-    do
+    "form" </ do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- Net.connectionType
         time <- getCurrentTime
         runHTMLT result $ setHTML $ show time ++ ": " ++ show res
-    do
+    "form" </ do
       result <- "p" <-/ text "Offline at:"
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
         runHTMLT result $ setHTML $ "Offline at: " ++ show time
-    do
+    "form" </ do
       result <- "p" <-/ text "Online at:"
       toggle $ Net.onlineEvent $ do
         time <- getCurrentTime
@@ -136,7 +138,7 @@ main = do
       button $ do
         text "Set background color by hex string"
         onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByHexString
-    do
+    "form" </ do
       result <- "p" <-/ text "Result here"
       let update = do
             b <- Bar.isVisible
@@ -154,3 +156,30 @@ main = do
     batteryToggle "Status" Bat.onStatus
     batteryToggle "Critical status" Bat.onCritical
     batteryToggle "Low status" Bat.onLow
+
+    "h1" </ text "Camera"
+    "form" </ do
+      stamp <- "p" <-/ text "Time here"
+      img <- "img" <-/ "width" $= "300"
+      err <- "p" <-/ text "Error here"
+      let combos :: [(Cam.SourceType, Cam.DestinationType)]
+          combos = liftM2 (,) [minBound .. maxBound] [minBound .. maxBound]
+      forM_ combos $ \(stype, dtype) -> do
+        action (show stype ++ " &rarr; " ++ show dtype) $ do
+          let opts = def
+                { Cam.sourceType = Just stype
+                , Cam.destinationType = Just dtype
+                }
+          pic <- Cam.getPicture opts
+          time <- getCurrentTime
+          case pic of
+            Left e -> runHTMLT err $ setHTML $ show e ++ " at " ++ show time
+            Right url -> do
+              runHTMLT img $ "src" $= url
+              runHTMLT stamp $ setHTML $ show time
+    "form" </ do
+      result <- "p" <-/ text "Result here"
+      action "Cleanup" $ do
+        res <- Cam.cleanup
+        time <- getCurrentTime
+        runHTMLT result $ setHTML $ show res ++ " at " ++ show time
