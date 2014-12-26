@@ -30,8 +30,6 @@ main = do
   Bar.styleBlackOpaque
   Bar.backgroundColorByName "black"
 
-  runHTMLT body $ "style" $= "font-family: sans-serif;"
-
   let toggle :: (MonadIO m) => IO (IO ()) -> HTMLT m ()
       toggle starter = do
         stopper <- liftIO $ newMVar Nothing
@@ -58,6 +56,14 @@ main = do
       action s act = button $ text s >> onclick act
 
   runHTMLT body $ do
+
+    "style" $= let
+      prop (k, v) = k ++ ": " ++ v ++ ";"
+      in unlines $ map prop $
+        [ ("font-family", "sans-serif")
+        , ("background-color", "#115")
+        , ("color", "#eee")
+        ]
 
     "h1" </ text "Device"
     "table" </ do
