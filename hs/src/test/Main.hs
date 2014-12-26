@@ -10,6 +10,7 @@ import qualified System.Cordova.DeviceOrientation as DO
 import qualified System.Cordova.DeviceMotion as DM
 import qualified System.Cordova.Vibration as Vib
 import qualified System.Cordova.NetworkInformation as Net
+import qualified System.Cordova.BatteryStatus as Bat
 import Data.Default (def)
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
 import Data.Function (on)
@@ -76,32 +77,20 @@ main = do
       row ("uuid"    , show Dev.uuid    )
       row ("version" , show Dev.version )
 
+    let spaceStatus get watch = do
+          result <- "p" <-/ text "Status here"
+          let update = runHTMLT result . setHTML . show
+          action "Update" $ get >>= update
+          toggle $ watch update
+
     "h1" </ text "Geolocation"
-    do
-      result <- "p" <-/ text "Result here"
-      action "Update" $ do
-        res <- Geo.getCurrentPosition def
-        runHTMLT result $ setHTML $ show res
-      toggle $ Geo.watchPosition def $ \res ->
-        runHTMLT result $ setHTML $ show res
+    spaceStatus (Geo.getCurrentPosition def) (Geo.watchPosition def)
 
     "h1" </ text "Device Orientation"
-    do
-      result <- "p" <-/ text "Result here"
-      action "Update" $ do
-        res <- DO.getCurrentHeading
-        runHTMLT result $ setHTML $ show res
-      toggle $ DO.watchHeading def $ \res ->
-        runHTMLT result $ setHTML $ show res
+    spaceStatus DO.getCurrentHeading (DO.watchHeading def)
 
     "h1" </ text "Device Motion"
-    do
-      result <- "p" <-/ text "Result here"
-      action "Update" $ do
-        res <- DM.getCurrentAcceleration
-        runHTMLT result $ setHTML $ show res
-      toggle $ DM.watchAcceleration def $ \res ->
-        runHTMLT result $ setHTML $ show res
+    spaceStatus DM.getCurrentAcceleration (DM.watchAcceleration def)
 
     "h1" </ text "Vibration"
     "form" </ do
@@ -117,7 +106,8 @@ main = do
       result <- "p" <-/ text "Result here"
       action "Update" $ do
         res <- Net.connectionType
-        runHTMLT result $ setHTML $ show res
+        time <- getCurrentTime
+        runHTMLT result $ setHTML $ show time ++ ": " ++ show res
     do
       result <- "p" <-/ text "Offline at:"
       toggle $ Net.offlineEvent $ do
@@ -153,3 +143,14 @@ main = do
             runHTMLT result $ setHTML $ "Visible: " ++ show b
       action "Hide" $ Bar.hideBar >> update
       action "Show" $ Bar.showBar >> update
+
+    "h1" </ text "Battery"
+    let batteryToggle kind batf = do
+          result <- "p" <-/ text $ kind ++ " here"
+          toggle $ batf $ \status -> do
+            time <- getCurrentTime
+            runHTMLT result $ setHTML $
+              kind ++ " at " ++ show time ++ ": " ++ show status
+    batteryToggle "Status" Bat.onStatus
+    batteryToggle "Critical status" Bat.onCritical
+    batteryToggle "Low status" Bat.onLow
