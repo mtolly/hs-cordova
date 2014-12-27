@@ -19,7 +19,7 @@ import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
 import Data.Maybe (fromJust)
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad (forM_, liftM, liftM3, liftM4, join)
+import Control.Monad (forM_, liftM, liftM2, liftM3, liftM4, join)
 
 import HTMLT
 
@@ -62,6 +62,24 @@ main = do
       enterStr s = do
         elt <- textBox s
         return $ runHTMLT elt getValue
+
+      enterInt :: (MonadIO m, Integral a) => a -> HTMLT m (m a)
+      enterInt n = "input" </ do
+        "type" $= "number"
+        "value" $= show $ toInteger n
+        elt <- getElement
+        return $ do
+          x <- liftM read $ runHTMLT elt getValue
+          return $ fromInteger x
+
+      enterFrac :: (MonadIO m, RealFrac a) => a -> HTMLT m (m a)
+      enterFrac n = "input" </ do
+        "type" $= "number"
+        "value" $= show (realToFrac n :: Double)
+        elt <- getElement
+        return $ do
+          x <- liftM read $ runHTMLT elt getValue
+          return $ realToFrac (x :: Double)
 
       enterRead :: (MonadIO m, Show a, Read a) => a -> HTMLT m (m a)
       enterRead x = do
@@ -252,7 +270,7 @@ main = do
       t4 <- enterMaybe $ enterStr "Input"
       action "Prompt" $ join (liftM4 Dia.prompt t1 t2 t3 t4) >>= push
     "form" </ do
-      t1 <- enterRead 2
+      t1 <- enterInt 2
       action "Beep" $ t1 >>= Dia.beep
 
     "h1" </ text "Globalization"
@@ -273,21 +291,19 @@ main = do
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
-      t <- enterStr "123.45"
-      forM_ [minBound .. maxBound] $ \numType -> do
-        action (show numType ++ " stringToNumber") $ do
-          res <- t >>= \v -> Glo.stringToNumber v $
-            Glo.NumStrOptions $ Just numType
-          runHTMLT result $ setHTML $ show res
+      t1 <- enterStr "123.45"
+      t2 <- enterEnum
+      action "stringToNumber" $ do
+        res <- join $ liftM2 Glo.stringToNumber t1 $ liftM (Glo.NumStrOptions . Just) t2
+        runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
-      t <- enterRead 12345.6789
-      forM_ [minBound .. maxBound] $ \numType -> do
-        action (show numType ++ " numberToString") $ do
-          res <- t >>= \v -> Glo.numberToString v $
-            Glo.NumStrOptions $ Just numType
-          runHTMLT result $ setHTML $ show res
+      t1 <- enterFrac 12345.6789
+      t2 <- enterEnum
+      action "numberToString" $ do
+        res <- join $ liftM2 Glo.numberToString t1 $ liftM (Glo.NumStrOptions . Just) t2
+        runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
