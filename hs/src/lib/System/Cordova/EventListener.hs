@@ -5,6 +5,7 @@ import GHCJS.Marshal
 import GHCJS.Types
 import Control.Monad ((>=>))
 import System.Cordova.Internal (fromJSRef')
+import qualified Data.Text as T
 
 foreign import javascript unsafe
   "window.document"
@@ -22,7 +23,7 @@ foreign import javascript unsafe
   "$3.removeEventListener($1, $2);"
   js_removeEventListener :: JSString -> JSFun f -> JSRef e -> IO ()
 
-addEventListener :: String -> IO () -> JSRef e -> IO (IO ())
+addEventListener :: T.Text -> IO () -> JSRef e -> IO (IO ())
 addEventListener str f elt = do
   jsfun <- asyncCallback (DomRetain $ castRef elt) f
   js_addEventListener (toJSString str) jsfun elt
@@ -30,7 +31,7 @@ addEventListener str f elt = do
     js_removeEventListener (toJSString str) jsfun elt
     releaseDom elt jsfun
 
-addEventListener1 :: String -> (JSRef a -> IO ()) -> JSRef e -> IO (IO ())
+addEventListener1 :: T.Text -> (JSRef a -> IO ()) -> JSRef e -> IO (IO ())
 addEventListener1 str f elt = do
   jsfun <- asyncCallback1 (DomRetain $ castRef elt) f
   js_addEventListener (toJSString str) jsfun elt

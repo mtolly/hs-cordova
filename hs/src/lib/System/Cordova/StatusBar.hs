@@ -7,6 +7,7 @@ module System.Cordova.StatusBar
 , hideBar, showBar, isVisible
 ) where
 
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified System.Cordova.Internal as RInternal
@@ -58,8 +59,8 @@ styleBlackOpaque  =  do
 
 foreign import javascript unsafe
   "StatusBar.backgroundColorByName($1);"
-  js_backgroundColorByName :: RTypes.JSRef (String) -> IO (RTypes.JSRef (()))
-backgroundColorByName :: String -> IO (())
+  js_backgroundColorByName :: RTypes.JSRef (T.Text) -> IO (RTypes.JSRef (()))
+backgroundColorByName :: T.Text -> IO (())
 backgroundColorByName arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_backgroundColorByName arg0'
@@ -67,8 +68,8 @@ backgroundColorByName arg0 =  do
 
 foreign import javascript unsafe
   "StatusBar.backgroundColorByHexString($1);"
-  js_backgroundColorByHexString :: RTypes.JSRef (String) -> IO (RTypes.JSRef (()))
-backgroundColorByHexString :: String -> IO (())
+  js_backgroundColorByHexString :: RTypes.JSRef (T.Text) -> IO (RTypes.JSRef (()))
+backgroundColorByHexString :: T.Text -> IO (())
 backgroundColorByHexString arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_backgroundColorByHexString arg0'

@@ -9,11 +9,13 @@ module System.Cordova.BatteryStatus
 import System.Cordova.EventListener
 import Control.Monad ((>=>))
 import System.Cordova.Internal (fromJSRef')
+import qualified Data.Text as T
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 data Status = Status
@@ -33,11 +35,11 @@ instance  RMarshal.ToJSRef (Status) where
     return obj
 instance  RMarshal.FromJSRef (Status) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "level" obj
-    _x1 <- RInternal.fromProp "isPlugged" obj
+    _x0 <- RInternal.fromProp (RText.pack "level") obj
+    _x1 <- RInternal.fromProp (RText.pack "isPlugged") obj
     return $ Status RApp.<$> _x0 RApp.<*> _x1
 
 onStatus, onCritical, onLow :: (Status -> IO ()) -> IO (IO ())
-onStatus   f = addEventListener1 "batterystatus"   (fromJSRef' >=> f) window
-onCritical f = addEventListener1 "batterycritical" (fromJSRef' >=> f) window
-onLow      f = addEventListener1 "batterylow"      (fromJSRef' >=> f) window
+onStatus   f = addEventListener1 (T.pack "batterystatus"  ) (fromJSRef' >=> f) window
+onCritical f = addEventListener1 (T.pack "batterycritical") (fromJSRef' >=> f) window
+onLow      f = addEventListener1 (T.pack "batterylow"     ) (fromJSRef' >=> f) window

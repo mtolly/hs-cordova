@@ -18,6 +18,7 @@ import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 foreign import javascript interruptible
@@ -37,10 +38,10 @@ data CompassHeading = CompassHeading
 instance  RDefault.Default (CompassHeading) where def = CompassHeading RDefault.def RDefault.def RDefault.def RDefault.def
 instance  RMarshal.FromJSRef (CompassHeading) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "magneticHeading" obj
-    _x1 <- RInternal.fromProp "trueHeading" obj
-    _x2 <- RInternal.fromProp "headingAccuracy" obj
-    _x3 <- RInternal.fromProp "timestamp" obj
+    _x0 <- RInternal.fromProp (RText.pack "magneticHeading") obj
+    _x1 <- RInternal.fromProp (RText.pack "trueHeading") obj
+    _x2 <- RInternal.fromProp (RText.pack "headingAccuracy") obj
+    _x3 <- RInternal.fromProp (RText.pack "timestamp") obj
     return $ CompassHeading RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
 
 newtype CompassError = CompassError
@@ -57,7 +58,7 @@ instance  RMarshal.ToJSRef (CompassError) where
     return obj
 instance  RMarshal.FromJSRef (CompassError) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "code" obj
+    _x0 <- RInternal.fromProp (RText.pack "code") obj
     return $ CompassError RApp.<$> _x0
 
 data CompassErrorCode
@@ -89,8 +90,8 @@ instance  RMarshal.ToJSRef (CompassOptions) where
     return obj
 instance  RMarshal.FromJSRef (CompassOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "frequency" obj
-    _x1 <- RInternal.fromProp "filter" obj
+    _x0 <- RInternal.fromProp (RText.pack "frequency") obj
+    _x1 <- RInternal.fromProp (RText.pack "filter") obj
     return $ CompassOptions RApp.<$> _x0 RApp.<*> _x1
 
 foreign import javascript unsafe

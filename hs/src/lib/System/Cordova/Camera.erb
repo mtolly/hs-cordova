@@ -15,16 +15,17 @@ module System.Cordova.Camera
 , cleanup
 ) where
 
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= jsImport(
   'navigator.camera.getPicture(hs_good($c), hs_error($c), $1);',
-  ['CameraOptions'], 'Either String String',
+  ['CameraOptions'], 'Either T.Text T.Text',
 ) %>
 
 <%= jsImport(
   'navigator.camera.cleanup(hs_good($c), hs_error($c));',
-  [], 'Either String ()',
+  [], 'Either T.Text ()',
 ) %>
 
 <%= makeRecord('CameraOptions', [

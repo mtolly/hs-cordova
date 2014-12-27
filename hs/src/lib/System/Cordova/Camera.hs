@@ -13,18 +13,20 @@ module System.Cordova.Camera
 , cleanup
 ) where
 
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 foreign import javascript interruptible
   "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
-  js_getPicture :: RTypes.JSRef (CameraOptions) -> IO (RInternal.JSEitherRef String String)
-getPicture :: CameraOptions -> IO (Either String String)
+  js_getPicture :: RTypes.JSRef (CameraOptions) -> IO (RInternal.JSEitherRef T.Text T.Text)
+getPicture :: CameraOptions -> IO (Either T.Text T.Text)
 getPicture arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_getPicture arg0'
@@ -32,8 +34,8 @@ getPicture arg0 =  do
 
 foreign import javascript interruptible
   "navigator.camera.cleanup(hs_good($c), hs_error($c));"
-  js_cleanup ::  IO (RInternal.JSEitherRef String ())
-cleanup ::  IO (Either String ())
+  js_cleanup ::  IO (RInternal.JSEitherRef T.Text ())
+cleanup ::  IO (Either T.Text ())
 cleanup  =  do
   res <- js_cleanup 
   RInternal.fromJSEitherRef res
@@ -75,18 +77,18 @@ instance  RMarshal.ToJSRef (CameraOptions) where
     return obj
 instance  RMarshal.FromJSRef (CameraOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "quality" obj
-    _x1 <- RInternal.fromProp "destinationType" obj
-    _x2 <- RInternal.fromProp "sourceType" obj
-    _x3 <- RInternal.fromProp "allowEdit" obj
-    _x4 <- RInternal.fromProp "encodingType" obj
-    _x5 <- RInternal.fromProp "targetWidth" obj
-    _x6 <- RInternal.fromProp "targetHeight" obj
-    _x7 <- RInternal.fromProp "mediaType" obj
-    _x8 <- RInternal.fromProp "correctOrientation" obj
-    _x9 <- RInternal.fromProp "saveToPhotoAlbum" obj
-    _x10 <- RInternal.fromProp "popoverOptions" obj
-    _x11 <- RInternal.fromProp "cameraDirection" obj
+    _x0 <- RInternal.fromProp (RText.pack "quality") obj
+    _x1 <- RInternal.fromProp (RText.pack "destinationType") obj
+    _x2 <- RInternal.fromProp (RText.pack "sourceType") obj
+    _x3 <- RInternal.fromProp (RText.pack "allowEdit") obj
+    _x4 <- RInternal.fromProp (RText.pack "encodingType") obj
+    _x5 <- RInternal.fromProp (RText.pack "targetWidth") obj
+    _x6 <- RInternal.fromProp (RText.pack "targetHeight") obj
+    _x7 <- RInternal.fromProp (RText.pack "mediaType") obj
+    _x8 <- RInternal.fromProp (RText.pack "correctOrientation") obj
+    _x9 <- RInternal.fromProp (RText.pack "saveToPhotoAlbum") obj
+    _x10 <- RInternal.fromProp (RText.pack "popoverOptions") obj
+    _x11 <- RInternal.fromProp (RText.pack "cameraDirection") obj
     return $ CameraOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6 RApp.<*> _x7 RApp.<*> _x8 RApp.<*> _x9 RApp.<*> _x10 RApp.<*> _x11
 
 data DestinationType
@@ -187,11 +189,11 @@ instance  RMarshal.ToJSRef (PopoverOptions) where
     return obj
 instance  RMarshal.FromJSRef (PopoverOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "x" obj
-    _x1 <- RInternal.fromProp "y" obj
-    _x2 <- RInternal.fromProp "width" obj
-    _x3 <- RInternal.fromProp "height" obj
-    _x4 <- RInternal.fromProp "arrowDir" obj
+    _x0 <- RInternal.fromProp (RText.pack "x") obj
+    _x1 <- RInternal.fromProp (RText.pack "y") obj
+    _x2 <- RInternal.fromProp (RText.pack "width") obj
+    _x3 <- RInternal.fromProp (RText.pack "height") obj
+    _x4 <- RInternal.fromProp (RText.pack "arrowDir") obj
     return $ PopoverOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4
 
 data SourceType

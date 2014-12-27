@@ -20,17 +20,19 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.Calendar
 import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 data GlobalizationError = GlobalizationError
   { code :: GlobalizationErrorCode
-  , message :: String
+  , message :: T.Text
   } deriving (Eq, Ord, Show, Read)
 instance  RMarshal.ToJSRef (GlobalizationError) where
   toJSRef opts = do
@@ -44,8 +46,8 @@ instance  RMarshal.ToJSRef (GlobalizationError) where
     return obj
 instance  RMarshal.FromJSRef (GlobalizationError) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "code" obj
-    _x1 <- RInternal.fromProp "message" obj
+    _x0 <- RInternal.fromProp (RText.pack "code") obj
+    _x1 <- RInternal.fromProp (RText.pack "message") obj
     return $ GlobalizationError RApp.<$> _x0 RApp.<*> _x1
 
 data GlobalizationErrorCode
@@ -81,29 +83,29 @@ instance (RMarshal.ToJSRef a) => RMarshal.ToJSRef (Value a) where
     return obj
 instance (RMarshal.FromJSRef a) => RMarshal.FromJSRef (Value a) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "value" obj
+    _x0 <- RInternal.fromProp (RText.pack "value") obj
     return $ Value RApp.<$> _x0
 
 foreign import javascript interruptible
   "navigator.globalization.getPreferredLanguage(hs_good($c), hs_error($c));"
-  js_getPreferredLanguage ::  IO (RInternal.JSEitherRef GlobalizationError (Value String))
-getPreferredLanguage ::  IO (Either GlobalizationError (Value String))
+  js_getPreferredLanguage ::  IO (RInternal.JSEitherRef GlobalizationError (Value T.Text))
+getPreferredLanguage ::  IO (Either GlobalizationError (Value T.Text))
 getPreferredLanguage  =  do
   res <- js_getPreferredLanguage 
   RInternal.fromJSEitherRef res
 
 foreign import javascript interruptible
   "navigator.globalization.getLocaleName(hs_good($c), hs_error($c));"
-  js_getLocaleName ::  IO (RInternal.JSEitherRef GlobalizationError (Value String))
-getLocaleName ::  IO (Either GlobalizationError (Value String))
+  js_getLocaleName ::  IO (RInternal.JSEitherRef GlobalizationError (Value T.Text))
+getLocaleName ::  IO (Either GlobalizationError (Value T.Text))
 getLocaleName  =  do
   res <- js_getLocaleName 
   RInternal.fromJSEitherRef res
 
 foreign import javascript interruptible
   "navigator.globalization.dateToString($1, hs_good($c), hs_error($c), $2);"
-  js_dateToString :: RTypes.JSRef (UTCTime) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value String))
-dateToString :: UTCTime -> DateStrOptions -> IO (Either GlobalizationError (Value String))
+  js_dateToString :: RTypes.JSRef (UTCTime) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value T.Text))
+dateToString :: UTCTime -> DateStrOptions -> IO (Either GlobalizationError (Value T.Text))
 dateToString arg0 arg1 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1
@@ -112,20 +114,20 @@ dateToString arg0 arg1 =  do
 
 foreign import javascript interruptible
   "navigator.globalization.getCurrencyPattern($1, hs_good($c), hs_error($c));"
-  js_getCurrencyPattern :: RTypes.JSRef (String) -> IO (RInternal.JSEitherRef GlobalizationError CurrencyPattern)
-getCurrencyPattern :: String -> IO (Either GlobalizationError CurrencyPattern)
+  js_getCurrencyPattern :: RTypes.JSRef (T.Text) -> IO (RInternal.JSEitherRef GlobalizationError CurrencyPattern)
+getCurrencyPattern :: T.Text -> IO (Either GlobalizationError CurrencyPattern)
 getCurrencyPattern arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_getCurrencyPattern arg0'
   RInternal.fromJSEitherRef res
 
 data CurrencyPattern = CurrencyPattern
-  { cPattern :: String
-  , cCode :: String
+  { cPattern :: T.Text
+  , cCode :: T.Text
   , cFraction :: Int
   , cRounding :: Double
-  , cDecimal :: String
-  , cGrouping :: String
+  , cDecimal :: T.Text
+  , cGrouping :: T.Text
   } deriving (Eq, Ord, Show, Read)
 instance  RMarshal.ToJSRef (CurrencyPattern) where
   toJSRef opts = do
@@ -143,12 +145,12 @@ instance  RMarshal.ToJSRef (CurrencyPattern) where
     return obj
 instance  RMarshal.FromJSRef (CurrencyPattern) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "pattern" obj
-    _x1 <- RInternal.fromProp "code" obj
-    _x2 <- RInternal.fromProp "fraction" obj
-    _x3 <- RInternal.fromProp "rounding" obj
-    _x4 <- RInternal.fromProp "decimal" obj
-    _x5 <- RInternal.fromProp "grouping" obj
+    _x0 <- RInternal.fromProp (RText.pack "pattern") obj
+    _x1 <- RInternal.fromProp (RText.pack "code") obj
+    _x2 <- RInternal.fromProp (RText.pack "fraction") obj
+    _x3 <- RInternal.fromProp (RText.pack "rounding") obj
+    _x4 <- RInternal.fromProp (RText.pack "decimal") obj
+    _x5 <- RInternal.fromProp (RText.pack "grouping") obj
     return $ CurrencyPattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5
 
 data NameType
@@ -192,14 +194,14 @@ instance  RMarshal.ToJSRef (DateNameOptions) where
     return obj
 instance  RMarshal.FromJSRef (DateNameOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "nameType" obj
-    _x1 <- RInternal.fromProp "item" obj
+    _x0 <- RInternal.fromProp (RText.pack "nameType") obj
+    _x1 <- RInternal.fromProp (RText.pack "item") obj
     return $ DateNameOptions RApp.<$> _x0 RApp.<*> _x1
 
 foreign import javascript interruptible
   "navigator.globalization.getDateNames(hs_good($c), hs_error($c), $1);"
-  js_getDateNames :: RTypes.JSRef (DateNameOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value [String]))
-getDateNames :: DateNameOptions -> IO (Either GlobalizationError (Value [String]))
+  js_getDateNames :: RTypes.JSRef (DateNameOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value [T.Text]))
+getDateNames :: DateNameOptions -> IO (Either GlobalizationError (Value [T.Text]))
 getDateNames arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_getDateNames arg0'
@@ -215,8 +217,8 @@ getDatePattern arg0 =  do
   RInternal.fromJSEitherRef res
 
 data DatePattern = DatePattern
-  { dPattern :: String
-  , dTimezone :: String
+  { dPattern :: T.Text
+  , dTimezone :: T.Text
   , dUTCOffset :: Double
   , dDSTOffset :: Double
   } deriving (Eq, Ord, Show, Read)
@@ -234,10 +236,10 @@ instance  RMarshal.ToJSRef (DatePattern) where
     return obj
 instance  RMarshal.FromJSRef (DatePattern) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "pattern" obj
-    _x1 <- RInternal.fromProp "timezone" obj
-    _x2 <- RInternal.fromProp "utc_offset" obj
-    _x3 <- RInternal.fromProp "dst_offset" obj
+    _x0 <- RInternal.fromProp (RText.pack "pattern") obj
+    _x1 <- RInternal.fromProp (RText.pack "timezone") obj
+    _x2 <- RInternal.fromProp (RText.pack "utc_offset") obj
+    _x3 <- RInternal.fromProp (RText.pack "dst_offset") obj
     return $ DatePattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
 
 foreign import javascript interruptible
@@ -258,14 +260,14 @@ getNumberPattern arg0 =  do
   RInternal.fromJSEitherRef res
 
 data NumberPattern = NumberPattern
-  { nPattern :: String
-  , nSymbol :: String
+  { nPattern :: T.Text
+  , nSymbol :: T.Text
   , nFraction :: Int
   , nRounding :: Double
-  , nPositive :: String
-  , nNegative :: String
-  , nDecimal :: String
-  , nGrouping :: String
+  , nPositive :: T.Text
+  , nNegative :: T.Text
+  , nDecimal :: T.Text
+  , nGrouping :: T.Text
   } deriving (Eq, Ord, Show, Read)
 instance  RMarshal.ToJSRef (NumberPattern) where
   toJSRef opts = do
@@ -285,14 +287,14 @@ instance  RMarshal.ToJSRef (NumberPattern) where
     return obj
 instance  RMarshal.FromJSRef (NumberPattern) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "pattern" obj
-    _x1 <- RInternal.fromProp "code" obj
-    _x2 <- RInternal.fromProp "fraction" obj
-    _x3 <- RInternal.fromProp "rounding" obj
-    _x4 <- RInternal.fromProp "positive" obj
-    _x5 <- RInternal.fromProp "negative" obj
-    _x6 <- RInternal.fromProp "decimal" obj
-    _x7 <- RInternal.fromProp "grouping" obj
+    _x0 <- RInternal.fromProp (RText.pack "pattern") obj
+    _x1 <- RInternal.fromProp (RText.pack "code") obj
+    _x2 <- RInternal.fromProp (RText.pack "fraction") obj
+    _x3 <- RInternal.fromProp (RText.pack "rounding") obj
+    _x4 <- RInternal.fromProp (RText.pack "positive") obj
+    _x5 <- RInternal.fromProp (RText.pack "negative") obj
+    _x6 <- RInternal.fromProp (RText.pack "decimal") obj
+    _x7 <- RInternal.fromProp (RText.pack "grouping") obj
     return $ NumberPattern RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6 RApp.<*> _x7
 
 newtype DST = DST
@@ -309,7 +311,7 @@ instance  RMarshal.ToJSRef (DST) where
     return obj
 instance  RMarshal.FromJSRef (DST) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "dst" obj
+    _x0 <- RInternal.fromProp (RText.pack "dst") obj
     return $ DST RApp.<$> _x0
 
 foreign import javascript interruptible
@@ -323,8 +325,8 @@ isDayLightSavingsTime arg0 =  do
 
 foreign import javascript interruptible
   "navigator.globalization.numberToString($1, hs_good($c), hs_error($c), $2);"
-  js_numberToString :: RTypes.JSRef (Double) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value String))
-numberToString :: Double -> NumStrOptions -> IO (Either GlobalizationError (Value String))
+  js_numberToString :: RTypes.JSRef (Double) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value T.Text))
+numberToString :: Double -> NumStrOptions -> IO (Either GlobalizationError (Value T.Text))
 numberToString arg0 arg1 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1
@@ -381,8 +383,8 @@ instance  RMarshal.ToJSRef (DateStrOptions) where
     return obj
 instance  RMarshal.FromJSRef (DateStrOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "formatLength" obj
-    _x1 <- RInternal.fromProp "selector" obj
+    _x0 <- RInternal.fromProp (RText.pack "formatLength") obj
+    _x1 <- RInternal.fromProp (RText.pack "selector") obj
     return $ DateStrOptions RApp.<$> _x0 RApp.<*> _x1
 
 data CordovaTime = CordovaTime
@@ -412,26 +414,26 @@ instance  RMarshal.ToJSRef (CordovaTime) where
     return obj
 instance  RMarshal.FromJSRef (CordovaTime) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "year" obj
-    _x1 <- RInternal.fromProp "month" obj
-    _x2 <- RInternal.fromProp "day" obj
-    _x3 <- RInternal.fromProp "hour" obj
-    _x4 <- RInternal.fromProp "minute" obj
-    _x5 <- RInternal.fromProp "second" obj
-    _x6 <- RInternal.fromProp "millisecond" obj
+    _x0 <- RInternal.fromProp (RText.pack "year") obj
+    _x1 <- RInternal.fromProp (RText.pack "month") obj
+    _x2 <- RInternal.fromProp (RText.pack "day") obj
+    _x3 <- RInternal.fromProp (RText.pack "hour") obj
+    _x4 <- RInternal.fromProp (RText.pack "minute") obj
+    _x5 <- RInternal.fromProp (RText.pack "second") obj
+    _x6 <- RInternal.fromProp (RText.pack "millisecond") obj
     return $ CordovaTime RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6
 
 foreign import javascript interruptible
   "navigator.globalization.stringToDate($1, hs_good($c), hs_error($c), $2);"
-  js_stringToDate_cordova :: RTypes.JSRef (String) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError CordovaTime)
-stringToDate_cordova :: String -> DateStrOptions -> IO (Either GlobalizationError CordovaTime)
+  js_stringToDate_cordova :: RTypes.JSRef (T.Text) -> RTypes.JSRef (DateStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError CordovaTime)
+stringToDate_cordova :: T.Text -> DateStrOptions -> IO (Either GlobalizationError CordovaTime)
 stringToDate_cordova arg0 arg1 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1
   res <- js_stringToDate_cordova arg0' arg1'
   RInternal.fromJSEitherRef res
 
-stringToDate :: String -> DateStrOptions -> IO (Either GlobalizationError LocalTime)
+stringToDate :: T.Text -> DateStrOptions -> IO (Either GlobalizationError LocalTime)
 stringToDate s opts = fmap (fmap corToHs) $ stringToDate_cordova s opts where
   corToHs cortime = let
     tod = TimeOfDay (hour cortime) (minute cortime) secs
@@ -455,7 +457,7 @@ instance  RMarshal.ToJSRef (NumStrOptions) where
     return obj
 instance  RMarshal.FromJSRef (NumStrOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "type" obj
+    _x0 <- RInternal.fromProp (RText.pack "type") obj
     return $ NumStrOptions RApp.<$> _x0
 
 data NumType
@@ -475,8 +477,8 @@ instance RMarshal.FromJSRef NumType where
 
 foreign import javascript interruptible
   "navigator.globalization.stringToNumber($1, hs_good($c), hs_error($c), $2);"
-  js_stringToNumber :: RTypes.JSRef (String) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value Double))
-stringToNumber :: String -> NumStrOptions -> IO (Either GlobalizationError (Value Double))
+  js_stringToNumber :: RTypes.JSRef (T.Text) -> RTypes.JSRef (NumStrOptions) -> IO (RInternal.JSEitherRef GlobalizationError (Value Double))
+stringToNumber :: T.Text -> NumStrOptions -> IO (Either GlobalizationError (Value Double))
 stringToNumber arg0 arg1 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1

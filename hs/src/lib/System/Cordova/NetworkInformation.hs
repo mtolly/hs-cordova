@@ -7,6 +7,7 @@ module System.Cordova.NetworkInformation
 ) where
 
 import System.Cordova.EventListener
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified System.Cordova.Internal as RInternal
@@ -51,7 +52,7 @@ instance RMarshal.FromJSRef Connection where
   fromJSRef = RInternal.js_fromEnum
 
 offlineEvent :: IO () -> IO (IO ())
-offlineEvent f = addEventListener "offline" f document
+offlineEvent f = addEventListener (T.pack "offline") f document
 
 onlineEvent :: IO () -> IO (IO ())
-onlineEvent f = addEventListener "online" f document
+onlineEvent f = addEventListener (T.pack "online") f document

@@ -8,17 +8,19 @@ module System.Cordova.Dialogs
 , beep
 ) where
 
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 foreign import javascript interruptible
   "navigator.notification.alert($1, $c, $2, $3);"
-  js_alert :: RTypes.JSRef (String) -> RTypes.JSRef (Maybe String) -> RTypes.JSRef (Maybe String) -> IO (RTypes.JSRef (Int))
-alert :: String -> Maybe String -> Maybe String -> IO (Int)
+  js_alert :: RTypes.JSRef (T.Text) -> RTypes.JSRef (Maybe T.Text) -> RTypes.JSRef (Maybe T.Text) -> IO (RTypes.JSRef (Int))
+alert :: T.Text -> Maybe T.Text -> Maybe T.Text -> IO (Int)
 alert arg0 arg1 arg2 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1
@@ -28,8 +30,8 @@ alert arg0 arg1 arg2 =  do
 
 foreign import javascript interruptible
   "navigator.notification.confirm($1, $c, $2, $3);"
-  js_confirm :: RTypes.JSRef (String) -> RTypes.JSRef (Maybe String) -> RTypes.JSRef (Maybe [String]) -> IO (RTypes.JSRef (Int))
-confirm :: String -> Maybe String -> Maybe [String] -> IO (Int)
+  js_confirm :: RTypes.JSRef (T.Text) -> RTypes.JSRef (Maybe T.Text) -> RTypes.JSRef (Maybe [T.Text]) -> IO (RTypes.JSRef (Int))
+confirm :: T.Text -> Maybe T.Text -> Maybe [T.Text] -> IO (Int)
 confirm arg0 arg1 arg2 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1
@@ -39,7 +41,7 @@ confirm arg0 arg1 arg2 =  do
 
 data PromptResult = PromptResult
   { buttonIndex :: Int
-  , input1 :: String
+  , input1 :: T.Text
   } deriving (Eq, Ord, Show, Read)
 instance  RMarshal.ToJSRef (PromptResult) where
   toJSRef opts = do
@@ -53,14 +55,14 @@ instance  RMarshal.ToJSRef (PromptResult) where
     return obj
 instance  RMarshal.FromJSRef (PromptResult) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "buttonIndex" obj
-    _x1 <- RInternal.fromProp "input1" obj
+    _x0 <- RInternal.fromProp (RText.pack "buttonIndex") obj
+    _x1 <- RInternal.fromProp (RText.pack "input1") obj
     return $ PromptResult RApp.<$> _x0 RApp.<*> _x1
 
 foreign import javascript interruptible
   "navigator.notification.prompt($1, $c, $2, $3, $4);"
-  js_prompt :: RTypes.JSRef (String) -> RTypes.JSRef (Maybe String) -> RTypes.JSRef (Maybe [String]) -> RTypes.JSRef (Maybe String) -> IO (RTypes.JSRef (PromptResult))
-prompt :: String -> Maybe String -> Maybe [String] -> Maybe String -> IO (PromptResult)
+  js_prompt :: RTypes.JSRef (T.Text) -> RTypes.JSRef (Maybe T.Text) -> RTypes.JSRef (Maybe [T.Text]) -> RTypes.JSRef (Maybe T.Text) -> IO (RTypes.JSRef (PromptResult))
+prompt :: T.Text -> Maybe T.Text -> Maybe [T.Text] -> Maybe T.Text -> IO (PromptResult)
 prompt arg0 arg1 arg2 arg3 =  do
   arg0' <- RMarshal.toJSRef arg0
   arg1' <- RMarshal.toJSRef arg1

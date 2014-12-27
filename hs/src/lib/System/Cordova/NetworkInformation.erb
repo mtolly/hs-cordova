@@ -9,6 +9,7 @@ module System.Cordova.NetworkInformation
 ) where
 
 import System.Cordova.EventListener
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= jsImport('navigator.connection.type', [], 'Connection',
@@ -26,7 +27,7 @@ import System.Cordova.EventListener
 ], exprPrefix: 'Connection.') %>
 
 offlineEvent :: IO () -> IO (IO ())
-offlineEvent f = addEventListener "offline" f document
+offlineEvent f = addEventListener (T.pack "offline") f document
 
 onlineEvent :: IO () -> IO (IO ())
-onlineEvent f = addEventListener "online" f document
+onlineEvent f = addEventListener (T.pack "online") f document

@@ -16,6 +16,7 @@ import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 foreign import javascript interruptible
@@ -35,10 +36,10 @@ data Acceleration = Acceleration
 instance  RDefault.Default (Acceleration) where def = Acceleration RDefault.def RDefault.def RDefault.def RDefault.def
 instance  RMarshal.FromJSRef (Acceleration) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "x" obj
-    _x1 <- RInternal.fromProp "y" obj
-    _x2 <- RInternal.fromProp "z" obj
-    _x3 <- RInternal.fromProp "timestamp" obj
+    _x0 <- RInternal.fromProp (RText.pack "x") obj
+    _x1 <- RInternal.fromProp (RText.pack "y") obj
+    _x2 <- RInternal.fromProp (RText.pack "z") obj
+    _x3 <- RInternal.fromProp (RText.pack "timestamp") obj
     return $ Acceleration RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
 
 newtype AccelerometerOptions = AccelerometerOptions
@@ -56,7 +57,7 @@ instance  RMarshal.ToJSRef (AccelerometerOptions) where
     return obj
 instance  RMarshal.FromJSRef (AccelerometerOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "frequency" obj
+    _x0 <- RInternal.fromProp (RText.pack "frequency") obj
     return $ AccelerometerOptions RApp.<$> _x0
 
 foreign import javascript unsafe

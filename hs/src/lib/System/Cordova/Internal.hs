@@ -9,6 +9,7 @@ import Control.Monad (forM, guard, join)
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
+import qualified Data.Text as T
 
 fromJSRef' :: (FromJSRef a) => JSRef a -> IO a
 fromJSRef' ref = fromJSRef ref >>= \mx -> case mx of
@@ -40,7 +41,7 @@ js_fromEnum ref = fmap (listToMaybe . catMaybes) $
     xref <- toJSRef x
     return $ guard (eqRef ref xref) >> Just x
 
-fromProp :: (FromJSRef b) => String -> JSRef a -> IO (Maybe b)
+fromProp :: (FromJSRef b) => T.Text -> JSRef a -> IO (Maybe b)
 fromProp k obj = getProp k obj >>= fromJSRef
 
 instance FromJSRef a => FromJSRef (Maybe a) where

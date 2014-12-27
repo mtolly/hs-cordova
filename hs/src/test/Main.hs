@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
 import System.Cordova.Base
@@ -21,6 +22,8 @@ import Data.Time.Clock (getCurrentTime, UTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad (forM_, liftM, liftM2, liftM3, liftM4, join)
+import qualified Data.Text as T
+import Data.Monoid ((<>))
 
 import HTMLT
 
@@ -55,15 +58,15 @@ main = do
       button :: (MonadIO m) => HTMLT m a -> HTMLT m a
       button act = "button" </ ("type" $= "button") >> act
 
-      textBox :: (MonadIO m) => String -> HTMLT m Element
+      textBox :: (MonadIO m) => T.Text -> HTMLT m Element
       textBox s = "input" <-/ do
         "type" $= "text"
         "value" $= s
 
-      action :: (MonadIO m) => String -> IO () -> HTMLT m ()
+      action :: (MonadIO m) => T.Text -> IO () -> HTMLT m ()
       action s act = button $ text s >> onclick act
 
-  let enterStr :: (MonadIO m) => String -> HTMLT m (m String)
+  let enterStr :: (MonadIO m) => T.Text -> HTMLT m (m T.Text)
       enterStr s = do
         elt <- textBox s
         return $ runHTMLT elt getValue
@@ -80,36 +83,36 @@ main = do
       enterInt :: (MonadIO m, Integral a) => a -> HTMLT m (m a)
       enterInt n = "input" </ do
         "type" $= "number"
-        "value" $= show $ toInteger n
+        "value" $= showT $ toInteger n
         elt <- getElement
         return $ do
-          x <- liftM read $ runHTMLT elt getValue
+          x <- liftM readT $ runHTMLT elt getValue
           return $ fromInteger x
 
       enterFrac :: (MonadIO m, RealFrac a) => a -> HTMLT m (m a)
       enterFrac n = "input" </ do
         "type" $= "number"
-        "value" $= show (realToFrac n :: Double)
+        "value" $= showT (realToFrac n :: Double)
         elt <- getElement
         return $ do
-          x <- liftM read $ runHTMLT elt getValue
+          x <- liftM readT $ runHTMLT elt getValue
           return $ realToFrac (x :: Double)
 
       enterRead :: (MonadIO m, Show a, Read a) => a -> HTMLT m (m a)
       enterRead x = do
-        f <- enterStr $ show x
-        return $ liftM read f
+        f <- enterStr $ showT x
+        return $ liftM readT f
 
       enterEnum :: (MonadIO m, Enum a, Bounded a, Show a) => HTMLT m (m a)
       enterEnum = "select" </ do
         let enumTable = zip ([0..] :: [Int]) [minBound .. maxBound]
         forM_ enumTable $ \(i, val) -> "option" </ do
-          "value" $= show i
-          text $ show val
+          "value" $= showT i
+          text $ showT val
         sel <- getElement
         return $ do
           str <- runHTMLT sel getValue
-          return $ fromJust $ lookup (read str) enumTable
+          return $ fromJust $ lookup (readT str) enumTable
 
       enterMaybe :: (MonadIO m) =>
         HTMLT m (m a) -> HTMLT m (m (Maybe a))
@@ -144,14 +147,14 @@ main = do
       let row (k, v) = "tr" </ do
             "td" </ text k
             "td" </ text v
-      row ("cordova" , show Dev.cordova )
-      row ("model"   , show Dev.model   )
-      row ("platform", show Dev.platform)
-      row ("uuid"    , show Dev.uuid    )
-      row ("version" , show Dev.version )
+      row ("cordova" , showT Dev.cordova )
+      row ("model"   , showT Dev.model   )
+      row ("platform", showT Dev.platform)
+      row ("uuid"    , showT Dev.uuid    )
+      row ("version" , showT Dev.version )
 
     let spaceStatus get watch = "form" </ mdo
-          let update = runHTMLT result . setHTML . show
+          let update = runHTMLT result . setHTML . showT
           action "Update" $ get >>= update
           toggle $ watch update
           result <- "p" <-/ text "Status here"
@@ -177,19 +180,19 @@ main = do
       action "Update" $ do
         res <- Net.connectionType
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ show time ++ ": " ++ show res
+        runHTMLT result $ setHTML $ showT time <> ": " <> showT res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ "Offline at: " ++ show time
+        runHTMLT result $ setHTML $ "Offline at: " <> showT time
       result <- "p" <-/ text "Offline at:"
       return ()
     "form" </ mdo
       toggle $ Net.onlineEvent $ do
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ "Online at: " ++ show time
+        runHTMLT result $ setHTML $ "Online at: " <> showT time
       result <- "p" <-/ text "Online at:"
       return ()
 
@@ -213,7 +216,7 @@ main = do
     "form" </ mdo
       let update = do
             b <- Bar.isVisible
-            runHTMLT result $ setHTML $ "Visible: " ++ show b
+            runHTMLT result $ setHTML $ "Visible: " <> showT b
       action "Hide" $ Bar.hideBar >> update
       action "Show" $ Bar.showBar >> update
       result <- "p" <-/ text "Result here"
@@ -224,8 +227,8 @@ main = do
           toggle $ batf $ \status -> do
             time <- getCurrentTime
             runHTMLT result $ setHTML $
-              kind ++ " at " ++ show time ++ ": " ++ show status
-          result <- "p" <-/ text $ kind ++ " here"
+              kind <> " at " <> showT time <> ": " <> showT status
+          result <- "p" <-/ text $ kind <> " here"
           return ()
     batteryToggle "Status" Bat.onStatus
     batteryToggle "Critical status" Bat.onCritical
@@ -245,13 +248,13 @@ main = do
         pic <- Cam.getPicture opts
         time <- getCurrentTime
         case pic of
-          Left e -> runHTMLT err $ setHTML $ show e ++ " at " ++ show time
+          Left e -> runHTMLT err $ setHTML $ showT e <> " at " <> showT time
           Right url -> do
             runHTMLT img $ "src" $= case dt of
-              Cam.DataURL -> "data:;base64," ++ url
+              Cam.DataURL -> "data:;base64," <> url
               -- the above should probably have a MIME type in between : and ;
               _           -> url
-            runHTMLT stamp $ setHTML $ show time
+            runHTMLT stamp $ setHTML $ showT time
       stamp <- "p" <-/ text "Time here"
       img <- "img" <-/ "width" $= "300"
       err <- "p" <-/ text "Error here"
@@ -260,7 +263,7 @@ main = do
       action "Cleanup" $ do
         res <- Cam.cleanup
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ show res ++ " at " ++ show time
+        runHTMLT result $ setHTML $ showT res <> " at " <> showT time
       result <- "p" <-/ text "Result here"
       return ()
 
@@ -269,7 +272,7 @@ main = do
     let push :: (Show a) => a -> IO ()
         push i = do
           time <- getCurrentTime
-          runHTMLT buttonPushed $ setHTML $ show i ++ " at " ++ show time
+          runHTMLT buttonPushed $ setHTML $ showT i <> " at " <> showT time
     "form" </ do
       t1 <- enterStr "The message"
       t2 <- enterMaybe $ enterStr "The title"
@@ -295,7 +298,7 @@ main = do
       let row (k, act) = "tr" </ do
             "td" </ text k
             res <- liftIO act
-            "td" </ text $ show res
+            "td" </ text $ showT res
       row ("getPreferredLanguage", Glo.getPreferredLanguage)
       row ("getLocaleName"       , Glo.getLocaleName       )
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
@@ -303,7 +306,7 @@ main = do
       t <- enterDateTime
       action "isDayLightSavingsTime" $ do
         res <- t >>= Glo.isDayLightSavingsTime
-        runHTMLT result $ setHTML $ show res
+        runHTMLT result $ setHTML $ showT res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
@@ -311,7 +314,7 @@ main = do
       t2 <- enterEnum
       action "stringToNumber" $ do
         res <- join $ liftM2 Glo.stringToNumber t1 $ liftM (Glo.NumStrOptions . Just) t2
-        runHTMLT result $ setHTML $ show res
+        runHTMLT result $ setHTML $ showT res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
@@ -319,20 +322,26 @@ main = do
       t2 <- enterEnum
       action "numberToString" $ do
         res <- join $ liftM2 Glo.numberToString t1 $ liftM (Glo.NumStrOptions . Just) t2
-        runHTMLT result $ setHTML $ show res
+        runHTMLT result $ setHTML $ showT res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
       t <- enterDateTime
       action "dateToString" $ do
         res <- t >>= \v -> Glo.dateToString v def
-        runHTMLT result $ setHTML $ show res
+        runHTMLT result $ setHTML $ showT res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
       t <- enterStr "12/26/14, 9:09 PM"
       action "stringToDate" $ do
         res <- t >>= \v -> Glo.stringToDate v def
-        runHTMLT result $ setHTML $ show res
+        runHTMLT result $ setHTML $ showT res
       result <- "p" <-/ text "Result here"
       return ()
+
+showT :: (Show a) => a -> T.Text
+showT = T.pack . show
+
+readT :: (Read a) => T.Text -> a
+readT = read . T.unpack

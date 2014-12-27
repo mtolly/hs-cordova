@@ -10,26 +10,27 @@ module System.Cordova.Dialogs
 , beep
 ) where
 
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= jsImport(
   "navigator.notification.alert($1, $c, $2, $3);",
-  ['String', 'Maybe String', 'Maybe String'], 'Int',
+  ['T.Text', 'Maybe T.Text', 'Maybe T.Text'], 'Int',
 ) %>
 
 <%= jsImport(
   "navigator.notification.confirm($1, $c, $2, $3);",
-  ['String', 'Maybe String', 'Maybe [String]'], 'Int',
+  ['T.Text', 'Maybe T.Text', 'Maybe [T.Text]'], 'Int',
 ) %>
 
 <%= makeRecord('PromptResult', [
   Field.new('Int', 'buttonIndex'),
-  Field.new('String', 'input1'),
+  Field.new('T.Text', 'input1'),
 ], instanceDefault: false) %>
 
 <%= jsImport(
   "navigator.notification.prompt($1, $c, $2, $3, $4);",
-  ['String', 'Maybe String', 'Maybe [String]', 'Maybe String'], 'PromptResult',
+  ['T.Text', 'Maybe T.Text', 'Maybe [T.Text]', 'Maybe T.Text'], 'PromptResult',
 ) %>
 
 <%= jsImport("navigator.notification.beep($1);", ['Int'], '()') %>

@@ -11,6 +11,7 @@ module System.Cordova.BatteryStatus
 import System.Cordova.EventListener
 import Control.Monad ((>=>))
 import System.Cordova.Internal (fromJSRef')
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= makeRecord('Status', [
@@ -19,6 +20,6 @@ import System.Cordova.Internal (fromJSRef')
 ]) %>
 
 onStatus, onCritical, onLow :: (Status -> IO ()) -> IO (IO ())
-onStatus   f = addEventListener1 "batterystatus"   (fromJSRef' >=> f) window
-onCritical f = addEventListener1 "batterycritical" (fromJSRef' >=> f) window
-onLow      f = addEventListener1 "batterylow"      (fromJSRef' >=> f) window
+onStatus   f = addEventListener1 (T.pack "batterystatus"  ) (fromJSRef' >=> f) window
+onCritical f = addEventListener1 (T.pack "batterycritical") (fromJSRef' >=> f) window
+onLow      f = addEventListener1 (T.pack "batterylow"     ) (fromJSRef' >=> f) window

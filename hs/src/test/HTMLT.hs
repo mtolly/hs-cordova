@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 module HTMLT
 ( HTMLT(..)
 , Element
@@ -26,6 +27,8 @@ import Control.Monad.Fix
 import Control.Monad.Trans.Reader
 import GHCJS.Types
 import GHCJS.Foreign
+import qualified Data.Text as T
+import Data.Monoid ((<>))
 
 data Element_
 type Element = JSRef Element_
@@ -50,10 +53,10 @@ inside elt act = HTMLT $ withReaderT (const elt) $ unHTMLT act
 getElement :: (Monad m) => HTMLT m Element
 getElement = HTMLT ask
 
-text :: (MonadIO m) => String -> HTMLT m ()
+text :: (MonadIO m) => T.Text -> HTMLT m ()
 text s = getElement >>= liftIO . appendHTML (toJSString s)
 
-(</) :: (MonadIO m) => String -> HTMLT m a -> HTMLT m a
+(</) :: (MonadIO m) => T.Text -> HTMLT m a -> HTMLT m a
 tag </ sub = do
   child  <- liftIO $ createElement $ toJSString tag
   result <- inside child sub
@@ -62,7 +65,7 @@ tag </ sub = do
   return result
 infixr 0 </
 
-(<-/) :: (MonadIO m) => String -> HTMLT m () -> HTMLT m Element
+(<-/) :: (MonadIO m) => T.Text -> HTMLT m () -> HTMLT m Element
 tag <-/ sub = tag </ (sub >> getElement)
 infixr 0 <-/
 
@@ -78,7 +81,7 @@ foreign import javascript unsafe
   "$3.setAttribute($1, $2);"
   setAttribute :: JSString -> JSString -> Element -> IO ()
 
-($=) :: (MonadIO m) => String -> String -> HTMLT m ()
+($=) :: (MonadIO m) => T.Text -> T.Text -> HTMLT m ()
 k $= v = getElement >>= liftIO . setAttribute (toJSString k) (toJSString v)
 infixr 0 $=
 
@@ -86,7 +89,7 @@ foreign import javascript unsafe
   "$2.innerHTML = $1;"
   js_setHTML :: JSString -> Element -> IO ()
 
-setHTML :: (MonadIO m) => String -> HTMLT m ()
+setHTML :: (MonadIO m) => T.Text -> HTMLT m ()
 setHTML s = getElement >>= liftIO . js_setHTML (toJSString s)
 
 foreign import javascript unsafe
@@ -97,7 +100,7 @@ foreign import javascript unsafe
   "$1.value"
   js_getValue :: Element -> IO JSString
 
-getValue :: (MonadIO m) => HTMLT m String
+getValue :: (MonadIO m) => HTMLT m T.Text
 getValue = liftM fromJSString $ getElement >>= liftIO . js_getValue
 
 foreign import javascript unsafe
@@ -111,11 +114,11 @@ onclick act = do
     cb <- asyncCallback (DomRetain $ castRef elt) act
     js_onclick elt cb
 
-style :: (MonadIO m) => String -> [(String, String)] -> HTMLT m ()
+style :: (MonadIO m) => T.Text -> [(T.Text, T.Text)] -> HTMLT m ()
 style ctxt kvs = "style" </ do
   "type" $= "text/css"
-  let rules = unwords [ k ++ ": " ++ v ++ ";" | (k, v) <- kvs ]
-  text $ ctxt ++ " { " ++ rules ++ " } "
+  let rules = T.unwords [ k <> ": " <> v <> ";" | (k, v) <- kvs ]
+  text $ ctxt <> " { " <> rules <> " } "
 
 foreign import javascript unsafe
   "$1.checked"

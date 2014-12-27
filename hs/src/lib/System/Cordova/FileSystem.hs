@@ -34,6 +34,7 @@ import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
 import qualified System.IO.Unsafe as RUnsafe
+import qualified Data.Text as RText
 
 
 
@@ -190,7 +191,7 @@ instance  RMarshal.ToJSRef (FileError) where
     return obj
 instance  RMarshal.FromJSRef (FileError) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "code" obj
+    _x0 <- RInternal.fromProp (RText.pack "code") obj
     return $ FileError RApp.<$> _x0
 
 data Storage
@@ -313,7 +314,7 @@ instance  RMarshal.ToJSRef (Metadata) where
     return obj
 instance  RMarshal.FromJSRef (Metadata) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "modificationTime" obj
+    _x0 <- RInternal.fromProp (RText.pack "modificationTime") obj
     return $ Metadata RApp.<$> _x0
 
 foreign import javascript interruptible

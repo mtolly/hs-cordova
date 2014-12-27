@@ -14,12 +14,14 @@ import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
 import System.Cordova.EventListener
+import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified Data.Default as RDefault
 import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
+import qualified Data.Text as RText
 
 
 foreign import javascript interruptible
@@ -58,13 +60,13 @@ instance  RMarshal.ToJSRef (Coordinates) where
     return obj
 instance  RMarshal.FromJSRef (Coordinates) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "latitude" obj
-    _x1 <- RInternal.fromProp "longitude" obj
-    _x2 <- RInternal.fromProp "altitude" obj
-    _x3 <- RInternal.fromProp "accuracy" obj
-    _x4 <- RInternal.fromProp "altitudeAccuracy" obj
-    _x5 <- RInternal.fromProp "heading" obj
-    _x6 <- RInternal.fromProp "speed" obj
+    _x0 <- RInternal.fromProp (RText.pack "latitude") obj
+    _x1 <- RInternal.fromProp (RText.pack "longitude") obj
+    _x2 <- RInternal.fromProp (RText.pack "altitude") obj
+    _x3 <- RInternal.fromProp (RText.pack "accuracy") obj
+    _x4 <- RInternal.fromProp (RText.pack "altitudeAccuracy") obj
+    _x5 <- RInternal.fromProp (RText.pack "heading") obj
+    _x6 <- RInternal.fromProp (RText.pack "speed") obj
     return $ Coordinates RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3 RApp.<*> _x4 RApp.<*> _x5 RApp.<*> _x6
 
 data Position = Position
@@ -83,13 +85,13 @@ instance  RMarshal.ToJSRef (Position) where
     return obj
 instance  RMarshal.FromJSRef (Position) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "coords" obj
-    _x1 <- RInternal.fromProp "timestamp" obj
+    _x0 <- RInternal.fromProp (RText.pack "coords") obj
+    _x1 <- RInternal.fromProp (RText.pack "timestamp") obj
     return $ Position RApp.<$> _x0 RApp.<*> _x1
 
 data PositionError = PositionError
   { code :: PositionErrorCode
-  , message :: String
+  , message :: T.Text
   } deriving (Eq, Ord, Show, Read)
 instance  RMarshal.ToJSRef (PositionError) where
   toJSRef opts = do
@@ -103,8 +105,8 @@ instance  RMarshal.ToJSRef (PositionError) where
     return obj
 instance  RMarshal.FromJSRef (PositionError) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "code" obj
-    _x1 <- RInternal.fromProp "message" obj
+    _x0 <- RInternal.fromProp (RText.pack "code") obj
+    _x1 <- RInternal.fromProp (RText.pack "message") obj
     return $ PositionError RApp.<$> _x0 RApp.<*> _x1
 
 data PositionErrorCode
@@ -141,9 +143,9 @@ instance  RMarshal.ToJSRef (GeolocationOptions) where
     return obj
 instance  RMarshal.FromJSRef (GeolocationOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp "enableHighAccuracy" obj
-    _x1 <- RInternal.fromProp "timeout" obj
-    _x2 <- RInternal.fromProp "maximumAge" obj
+    _x0 <- RInternal.fromProp (RText.pack "enableHighAccuracy") obj
+    _x1 <- RInternal.fromProp (RText.pack "timeout") obj
+    _x2 <- RInternal.fromProp (RText.pack "maximumAge") obj
     return $ GeolocationOptions RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2
 
 foreign import javascript unsafe

@@ -7,6 +7,7 @@ import qualified GHCJS.Foreign as RForeign
 import qualified System.Cordova.Internal as RInternal
 import qualified Control.Applicative as RApp
 import qualified System.IO.Unsafe as RUnsafe
+import qualified Data.Text as RText
 EOS
 end
 
@@ -114,7 +115,7 @@ def makeRecord(name, fields, instanceTo: true, instanceDefault: true, hsDoc: nil
   fields.each_with_index do |field, i|
     thisBound = "_x#{i}"
     bound << thisBound
-    lines << "    #{thisBound} <- RInternal.fromProp #{field.jsName.inspect} obj"
+    lines << "    #{thisBound} <- RInternal.fromProp (RText.pack #{field.jsName.inspect}) obj"
   end
   lines << "    return $ #{constructor} RApp.<$> #{bound.join(' RApp.<*> ')}"
 

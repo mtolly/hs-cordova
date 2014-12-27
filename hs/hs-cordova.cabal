@@ -31,6 +31,7 @@ library
     , data-default == 0.5.3
     , time
     , bytestring
+    , text
   hs-source-dirs:       src/lib
   default-language:     Haskell2010
   ghc-options:          -Wall
@@ -59,5 +60,6 @@ executable hs-cordova-test
     , data-default
     , time
     , transformers >= 0.4.0.0
+    , text
   default-language:     Haskell2010
   ghc-options:          -Wall

@@ -9,6 +9,7 @@ module System.Cordova.StatusBar
 , hideBar, showBar, isVisible
 ) where
 
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= jsImport('StatusBar.overlaysWebView($1);', ['Bool'], '()') %>
@@ -18,7 +19,7 @@ module System.Cordova.StatusBar
 <% end %>
 
 <% %w{backgroundColorByName backgroundColorByHexString}.each do |s| %>
-<%= jsImport("StatusBar.#{s}($1);", ['String'], '()') %>
+<%= jsImport("StatusBar.#{s}($1);", ['T.Text'], '()') %>
 <% end %>
 
 <%= jsImport("StatusBar.hide();", [], '()', hsName: 'hideBar') %>

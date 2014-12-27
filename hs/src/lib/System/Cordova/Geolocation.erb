@@ -16,6 +16,7 @@ import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
 import System.Cordova.EventListener
+import qualified Data.Text as T
 <%= hsImports %>
 
 <%= jsImport(
@@ -40,7 +41,7 @@ import System.Cordova.EventListener
 
 <%= makeRecord('PositionError', [
   Field.new('PositionErrorCode', 'code'),
-  Field.new('String', 'message'),
+  Field.new('T.Text', 'message'),
 ], instanceDefault: false) %>
 
 <%= makeEnum('PositionErrorCode', [

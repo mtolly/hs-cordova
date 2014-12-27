@@ -6,8 +6,9 @@ module System.Cordova.Device
 ( <%= fields.join(', ') %>
 ) where
 
+import qualified Data.Text as T
 <%= hsImports %>
 
 <% fields.each do |field| %>
-<%= jsImport("device.#{field}", [], 'String', isIO: false) %>
+<%= jsImport("device.#{field}", [], 'T.Text', isIO: false) %>
 <% end %>
