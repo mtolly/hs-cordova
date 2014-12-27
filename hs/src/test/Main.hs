@@ -247,7 +247,10 @@ main = do
         case pic of
           Left e -> runHTMLT err $ setHTML $ show e ++ " at " ++ show time
           Right url -> do
-            runHTMLT img $ "src" $= url
+            runHTMLT img $ "src" $= case dt of
+              Cam.DataURL -> "data:;base64," ++ url
+              -- the above should probably have a MIME type in between : and ;
+              _           -> url
             runHTMLT stamp $ setHTML $ show time
       stamp <- "p" <-/ text "Time here"
       img <- "img" <-/ "width" $= "300"
