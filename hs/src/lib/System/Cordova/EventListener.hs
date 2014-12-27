@@ -16,7 +16,7 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "$3.addEventListener($1, $2);"
-  js_addEventListener :: JSString -> JSFun f-> JSRef e -> IO ()
+  js_addEventListener :: JSString -> JSFun f -> JSRef e -> IO ()
 
 foreign import javascript unsafe
   "$3.removeEventListener($1, $2);"
@@ -28,7 +28,7 @@ addEventListener str f elt = do
   js_addEventListener (toJSString str) jsfun elt
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
-    -- releaseAll jsfun
+    releaseDom elt jsfun
 
 addEventListener1 :: String -> (JSRef a -> IO ()) -> JSRef e -> IO (IO ())
 addEventListener1 str f elt = do
@@ -36,7 +36,7 @@ addEventListener1 str f elt = do
   js_addEventListener (toJSString str) jsfun elt
   return $ do
     js_removeEventListener (toJSString str) jsfun elt
-    -- releaseAll jsfun
+    releaseDom elt jsfun
 
 globalListener
   :: (FromJSRef err, FromJSRef a)
@@ -50,5 +50,5 @@ globalListener on off f = do
   watchID <- on fnGood fnError
   return $ do
     off watchID
-    -- releaseAll fnGood
-    -- releaseAll fnError
+    release fnGood
+    release fnError
