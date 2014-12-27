@@ -2,6 +2,7 @@
 module HTMLT
 ( HTMLT(..)
 , Element
+, headElement
 , body
 , runHTMLT
 , inside
@@ -13,12 +14,14 @@ module HTMLT
 , onclick
 , setHTML
 , getValue
+, style
 ) where
 
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 import Control.Applicative
 import Control.Monad
+import Control.Monad.Fix
 import Control.Monad.Trans.Reader
 import GHCJS.Types
 import GHCJS.Foreign
@@ -27,11 +30,15 @@ data Element_
 type Element = JSRef Element_
 
 newtype HTMLT m a = HTMLT { unHTMLT :: ReaderT Element m a }
-  deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)
 
 foreign import javascript unsafe
   "document.getElementsByTagName('body')[0]"
   body :: Element
+
+foreign import javascript unsafe
+  "document.getElementsByTagName('head')[0]"
+  headElement :: Element
 
 runHTMLT :: (Monad m) => Element -> HTMLT m a -> m a
 runHTMLT elt act = runReaderT (unHTMLT act) elt
@@ -102,3 +109,9 @@ onclick act = do
   liftIO $ do
     cb <- asyncCallback (DomRetain $ castRef elt) act
     js_onclick elt cb
+
+style :: (MonadIO m) => String -> [(String, String)] -> HTMLT m ()
+style ctxt kvs = "style" </ do
+  "type" $= "text/css"
+  let rules = unwords [ k ++ ": " ++ v ++ ";" | (k, v) <- kvs ]
+  text $ ctxt ++ " { " ++ rules ++ " } "

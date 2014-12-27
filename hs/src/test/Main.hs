@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecursiveDo #-}
 module Main (main) where
 
 import System.Cordova.Base
@@ -61,15 +62,20 @@ main = do
       action :: (MonadIO m) => String -> IO () -> HTMLT m ()
       action s act = button $ text s >> onclick act
 
-  runHTMLT body $ do
+  runHTMLT headElement $ do
+    style "body"
+      [ ("font-family", "sans-serif")
+      , ("background-color", "#115")
+      , ("color", "#eee")
+      ]
+    style "form"
+      [ ("border", "1px solid #666")
+      ]
+    style "td"
+      [ ("border", "1px solid #666")
+      ]
 
-    "style" $= let
-      prop (k, v) = k ++ ": " ++ v ++ ";"
-      in unlines $ map prop $
-        [ ("font-family", "sans-serif")
-        , ("background-color", "#115")
-        , ("color", "#eee")
-        ]
+  runHTMLT body $ do
 
     "h1" </ text "Device"
     "table" </ do
@@ -224,3 +230,11 @@ main = do
       row ("getPreferredLanguage", Glo.getPreferredLanguage)
       row ("getLocaleName"       , Glo.getLocaleName       )
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
+    now <- liftIO getCurrentTime
+    "form" </ mdo
+      t <- textBox $ show now
+      action "isDayLightSavingsTime" $ do
+        res <- val t >>= Glo.isDayLightSavingsTime
+        runHTMLT result $ setHTML $ show res
+      result <- "p" <-/ text "Result here"
+      return ()
