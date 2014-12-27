@@ -12,6 +12,7 @@ import qualified System.Cordova.NetworkInformation as Net
 import qualified System.Cordova.BatteryStatus as Bat
 import qualified System.Cordova.Camera as Cam
 import qualified System.Cordova.Dialogs as Dia
+import qualified System.Cordova.Globalization as Glo
 import Data.Default (def)
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
 import Data.Function (on)
@@ -213,3 +214,13 @@ main = do
     "form" </ do
       t1 <- textBox "2"
       action "Beep" $ val t1 >>= Dia.beep
+
+    "h1" </ text "Globalization"
+    "table" </ do
+      let row (k, act) = "tr" </ do
+            "td" </ text k
+            res <- liftIO act
+            "td" </ text $ show res
+      row ("getPreferredLanguage", Glo.getPreferredLanguage)
+      row ("getLocaleName"       , Glo.getLocaleName       )
+      row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
