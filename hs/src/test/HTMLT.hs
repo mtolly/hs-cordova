@@ -15,6 +15,7 @@ module HTMLT
 , setHTML
 , getValue
 , style
+, checked, setChecked
 ) where
 
 import Control.Monad.Trans.Class
@@ -115,3 +116,17 @@ style ctxt kvs = "style" </ do
   "type" $= "text/css"
   let rules = unwords [ k ++ ": " ++ v ++ ";" | (k, v) <- kvs ]
   text $ ctxt ++ " { " ++ rules ++ " } "
+
+foreign import javascript unsafe
+  "$1.checked"
+  js_checked :: Element -> IO Bool
+
+foreign import javascript unsafe
+  "$2.checked = $1;"
+  js_setChecked :: Bool -> Element -> IO ()
+
+checked :: (MonadIO m) => HTMLT m Bool
+checked = getElement >>= liftIO . js_checked
+
+setChecked :: (MonadIO m) => Bool -> HTMLT m ()
+setChecked b = getElement >>= liftIO . js_setChecked b

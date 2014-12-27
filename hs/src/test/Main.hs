@@ -16,14 +16,10 @@ import qualified System.Cordova.Dialogs as Dia
 import qualified System.Cordova.Globalization as Glo
 import Data.Default (def)
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
-import Data.Function (on)
-import Data.Char (isDigit)
-import Data.Maybe (mapMaybe)
-import Data.List (groupBy)
-import Text.Read (readMaybe)
+import Data.Maybe (fromJust)
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad (forM_, liftM2, liftM3, liftM4, join)
+import Control.Monad (forM_, liftM, liftM3, liftM4, join)
 
 import HTMLT
 
@@ -61,6 +57,40 @@ main = do
 
       action :: (MonadIO m) => String -> IO () -> HTMLT m ()
       action s act = button $ text s >> onclick act
+
+  let enterStr :: (MonadIO m) => String -> HTMLT m (m String)
+      enterStr s = do
+        elt <- textBox s
+        return $ runHTMLT elt getValue
+
+      enterRead :: (MonadIO m, Show a, Read a) => a -> HTMLT m (m a)
+      enterRead x = do
+        f <- enterStr $ show x
+        return $ liftM read f
+
+      enterEnum :: (MonadIO m, Enum a, Bounded a, Show a) => HTMLT m (m a)
+      enterEnum = "select" </ do
+        let enumTable = zip ([0..] :: [Int]) [minBound .. maxBound]
+        forM_ enumTable $ \(i, val) -> "option" </ do
+          "value" $= show i
+          text $ show val
+        sel <- getElement
+        return $ do
+          str <- runHTMLT sel getValue
+          return $ fromJust $ lookup (read str) enumTable
+
+      enterMaybe :: (MonadIO m) =>
+        HTMLT m (m a) -> HTMLT m (m (Maybe a))
+      enterMaybe input = "p" </ do
+        box <- "input" <-/ do
+          "type" $= "checkbox"
+          setChecked True
+        get <- input
+        return $ do
+          chk <- runHTMLT box checked
+          if chk
+            then liftM Just get
+            else return Nothing
 
   runHTMLT headElement $ do
     style "body"
@@ -106,11 +136,8 @@ main = do
 
     "h1" </ text "Vibration"
     "form" </ do
-      txt <- textBox "500 100 200"
-      action "Vibrate pattern" $ do
-        str <- runHTMLT txt getValue
-        let ints = mapMaybe readMaybe $ groupBy ((==) `on` isDigit) str
-        Vib.vibrate ints
+      t <- enterRead [500, 100, 200]
+      action "Vibrate pattern" $ t >>= Vib.vibrate
     action "Vibrate cancel" Vib.vibrateCancel
 
     "h1" </ text "Network Information"
@@ -174,21 +201,22 @@ main = do
 
     "h1" </ text "Camera"
     "form" </ mdo
-      let combos :: [(Cam.SourceType, Cam.DestinationType)]
-          combos = liftM2 (,) [minBound .. maxBound] [minBound .. maxBound]
-      forM_ combos $ \(stype, dtype) -> do
-        action (show stype ++ " &rarr; " ++ show dtype) $ do
-          let opts = def
-                { Cam.sourceType = Just stype
-                , Cam.destinationType = Just dtype
-                }
-          pic <- Cam.getPicture opts
-          time <- getCurrentTime
-          case pic of
-            Left e -> runHTMLT err $ setHTML $ show e ++ " at " ++ show time
-            Right url -> do
-              runHTMLT img $ "src" $= url
-              runHTMLT stamp $ setHTML $ show time
+      stype <- enterEnum
+      dtype <- enterEnum
+      action "getPicture" $ do
+        st <- stype
+        dt <- dtype
+        let opts = def
+              { Cam.sourceType      = Just st
+              , Cam.destinationType = Just dt
+              }
+        pic <- Cam.getPicture opts
+        time <- getCurrentTime
+        case pic of
+          Left e -> runHTMLT err $ setHTML $ show e ++ " at " ++ show time
+          Right url -> do
+            runHTMLT img $ "src" $= url
+            runHTMLT stamp $ setHTML $ show time
       stamp <- "p" <-/ text "Time here"
       img <- "img" <-/ "width" $= "300"
       err <- "p" <-/ text "Error here"
@@ -203,31 +231,29 @@ main = do
 
     "h1" </ text "Dialogs"
     buttonPushed <- "p" <-/ text "Button here"
-    let val :: (Read a) => Element -> IO a
-        val elt = fmap read $ runHTMLT elt getValue
-        push :: (Show a) => a -> IO ()
+    let push :: (Show a) => a -> IO ()
         push i = do
           time <- getCurrentTime
           runHTMLT buttonPushed $ setHTML $ show i ++ " at " ++ show time
     "form" </ do
-      t1 <- textBox $ show "The message"
-      t2 <- textBox $ show $ Just "The title"
-      t3 <- textBox $ show $ Just "The button"
-      action "Alert" $ join (liftM3 Dia.alert (val t1) (val t2) (val t3)) >>= push
+      t1 <- enterStr "The message"
+      t2 <- enterMaybe $ enterStr "The title"
+      t3 <- enterMaybe $ enterStr "The button"
+      action "Alert" $ join (liftM3 Dia.alert t1 t2 t3) >>= push
     "form" </ do
-      t1 <- textBox $ show "The message"
-      t2 <- textBox $ show $ Just "The title"
-      t3 <- textBox $ show $ Just ["B1", "B2", "B3"]
-      action "Confirm" $ join (liftM3 Dia.confirm (val t1) (val t2) (val t3)) >>= push
+      t1 <- enterStr "The message"
+      t2 <- enterMaybe $ enterStr "The title"
+      t3 <- enterMaybe $ enterRead ["B1", "B2", "B3"]
+      action "Confirm" $ join (liftM3 Dia.confirm t1 t2 t3) >>= push
     "form" </ do
-      t1 <- textBox $ show "The message"
-      t2 <- textBox $ show $ Just "The title"
-      t3 <- textBox $ show $ Just ["B1", "B2", "B3"]
-      t4 <- textBox $ show $ Just "Input"
-      action "Prompt" $ join (liftM4 Dia.prompt (val t1) (val t2) (val t3) (val t4)) >>= push
+      t1 <- enterStr "The message"
+      t2 <- enterMaybe $ enterStr "The title"
+      t3 <- enterMaybe $ enterRead ["B1", "B2", "B3"]
+      t4 <- enterMaybe $ enterStr "Input"
+      action "Prompt" $ join (liftM4 Dia.prompt t1 t2 t3 t4) >>= push
     "form" </ do
-      t1 <- textBox "2"
-      action "Beep" $ val t1 >>= Dia.beep
+      t1 <- enterRead 2
+      action "Beep" $ t1 >>= Dia.beep
 
     "h1" </ text "Globalization"
     "table" </ do
@@ -240,27 +266,41 @@ main = do
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
     now <- liftIO getCurrentTime
     "form" </ mdo
-      t <- textBox $ show now
+      t <- enterRead now
       action "isDayLightSavingsTime" $ do
-        res <- val t >>= Glo.isDayLightSavingsTime
+        res <- t >>= Glo.isDayLightSavingsTime
         runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
-      t <- textBox "123.45"
+      t <- enterStr "123.45"
       forM_ [minBound .. maxBound] $ \numType -> do
         action (show numType ++ " stringToNumber") $ do
-          res <- runHTMLT t getValue >>= \v -> Glo.stringToNumber v $
+          res <- t >>= \v -> Glo.stringToNumber v $
             Glo.NumStrOptions $ Just numType
           runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
-      t <- textBox "12345.6789"
+      t <- enterRead 12345.6789
       forM_ [minBound .. maxBound] $ \numType -> do
         action (show numType ++ " numberToString") $ do
-          res <- val t >>= \v -> Glo.numberToString v $
+          res <- t >>= \v -> Glo.numberToString v $
             Glo.NumStrOptions $ Just numType
           runHTMLT result $ setHTML $ show res
+      result <- "p" <-/ text "Result here"
+      return ()
+    "form" </ mdo
+      t <- enterRead now
+      action "dateToString" $ do
+        res <- t >>= \v -> Glo.dateToString v def
+        runHTMLT result $ setHTML $ show res
+      result <- "p" <-/ text "Result here"
+      return ()
+    "form" </ mdo
+      t <- enterStr "12/26/14, 9:09 PM"
+      action "stringToDate" $ do
+        res <- t >>= \v -> Glo.stringToDate v def
+        runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
