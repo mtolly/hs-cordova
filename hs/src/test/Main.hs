@@ -88,11 +88,12 @@ main = do
       row ("uuid"    , show Dev.uuid    )
       row ("version" , show Dev.version )
 
-    let spaceStatus get watch = "form" </ do
-          result <- "p" <-/ text "Status here"
+    let spaceStatus get watch = "form" </ mdo
           let update = runHTMLT result . setHTML . show
           action "Update" $ get >>= update
           toggle $ watch update
+          result <- "p" <-/ text "Status here"
+          return ()
 
     "h1" </ text "Geolocation"
     spaceStatus (Geo.getCurrentPosition def) (Geo.watchPosition def)
@@ -113,22 +114,25 @@ main = do
     action "Vibrate cancel" Vib.vibrateCancel
 
     "h1" </ text "Network Information"
-    "form" </ do
-      result <- "p" <-/ text "Result here"
+    "form" </ mdo
       action "Update" $ do
         res <- Net.connectionType
         time <- getCurrentTime
         runHTMLT result $ setHTML $ show time ++ ": " ++ show res
-    "form" </ do
-      result <- "p" <-/ text "Offline at:"
+      result <- "p" <-/ text "Result here"
+      return ()
+    "form" </ mdo
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
         runHTMLT result $ setHTML $ "Offline at: " ++ show time
-    "form" </ do
-      result <- "p" <-/ text "Online at:"
+      result <- "p" <-/ text "Offline at:"
+      return ()
+    "form" </ mdo
       toggle $ Net.onlineEvent $ do
         time <- getCurrentTime
         runHTMLT result $ setHTML $ "Online at: " ++ show time
+      result <- "p" <-/ text "Online at:"
+      return ()
 
     "h1" </ text "Status Bar"
     action "Overlay web view" $ Bar.overlaysWebView True
@@ -147,30 +151,29 @@ main = do
       button $ do
         text "Set background color by hex string"
         onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByHexString
-    "form" </ do
-      result <- "p" <-/ text "Result here"
+    "form" </ mdo
       let update = do
             b <- Bar.isVisible
             runHTMLT result $ setHTML $ "Visible: " ++ show b
       action "Hide" $ Bar.hideBar >> update
       action "Show" $ Bar.showBar >> update
+      result <- "p" <-/ text "Result here"
+      return ()
 
     "h1" </ text "Battery"
-    let batteryToggle kind batf = do
-          result <- "p" <-/ text $ kind ++ " here"
+    let batteryToggle kind batf = "form" </ mdo
           toggle $ batf $ \status -> do
             time <- getCurrentTime
             runHTMLT result $ setHTML $
               kind ++ " at " ++ show time ++ ": " ++ show status
+          result <- "p" <-/ text $ kind ++ " here"
+          return ()
     batteryToggle "Status" Bat.onStatus
     batteryToggle "Critical status" Bat.onCritical
     batteryToggle "Low status" Bat.onLow
 
     "h1" </ text "Camera"
-    "form" </ do
-      stamp <- "p" <-/ text "Time here"
-      img <- "img" <-/ "width" $= "300"
-      err <- "p" <-/ text "Error here"
+    "form" </ mdo
       let combos :: [(Cam.SourceType, Cam.DestinationType)]
           combos = liftM2 (,) [minBound .. maxBound] [minBound .. maxBound]
       forM_ combos $ \(stype, dtype) -> do
@@ -186,12 +189,17 @@ main = do
             Right url -> do
               runHTMLT img $ "src" $= url
               runHTMLT stamp $ setHTML $ show time
-    "form" </ do
-      result <- "p" <-/ text "Result here"
+      stamp <- "p" <-/ text "Time here"
+      img <- "img" <-/ "width" $= "300"
+      err <- "p" <-/ text "Error here"
+      return ()
+    "form" </ mdo
       action "Cleanup" $ do
         res <- Cam.cleanup
         time <- getCurrentTime
         runHTMLT result $ setHTML $ show res ++ " at " ++ show time
+      result <- "p" <-/ text "Result here"
+      return ()
 
     "h1" </ text "Dialogs"
     buttonPushed <- "p" <-/ text "Button here"
@@ -236,5 +244,23 @@ main = do
       action "isDayLightSavingsTime" $ do
         res <- val t >>= Glo.isDayLightSavingsTime
         runHTMLT result $ setHTML $ show res
+      result <- "p" <-/ text "Result here"
+      return ()
+    "form" </ mdo
+      t <- textBox "123.45"
+      forM_ [minBound .. maxBound] $ \numType -> do
+        action (show numType ++ " stringToNumber") $ do
+          res <- runHTMLT t getValue >>= \v -> Glo.stringToNumber v $
+            Glo.NumStrOptions $ Just numType
+          runHTMLT result $ setHTML $ show res
+      result <- "p" <-/ text "Result here"
+      return ()
+    "form" </ mdo
+      t <- textBox "12345.6789"
+      forM_ [minBound .. maxBound] $ \numType -> do
+        action (show numType ++ " numberToString") $ do
+          res <- val t >>= \v -> Glo.numberToString v $
+            Glo.NumStrOptions $ Just numType
+          runHTMLT result $ setHTML $ show res
       result <- "p" <-/ text "Result here"
       return ()
