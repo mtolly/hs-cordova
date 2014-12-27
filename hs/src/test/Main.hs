@@ -17,11 +17,16 @@ import qualified System.Cordova.Globalization as Glo
 import Data.Default (def)
 import Control.Concurrent.MVar (newMVar, takeMVar, putMVar)
 import Data.Maybe (fromJust)
-import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock (getCurrentTime, UTCTime)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad (forM_, liftM, liftM2, liftM3, liftM4, join)
 
 import HTMLT
+
+foreign import javascript unsafe
+  "$1.valueAsNumber"
+  valueAsNumber :: Element -> IO Double
 
 main :: IO ()
 main = do
@@ -62,6 +67,15 @@ main = do
       enterStr s = do
         elt <- textBox s
         return $ runHTMLT elt getValue
+
+      enterDateTime :: (MonadIO m) => HTMLT m (m UTCTime)
+      enterDateTime = do
+        d <- "input" <-/ "type" $= "date"
+        t <- "input" <-/ "type" $= "time"
+        return $ do
+          milli <- liftIO $ liftM2 (+) (valueAsNumber d) (valueAsNumber t)
+          let posix = realToFrac $ milli / 1000
+          return $ posixSecondsToUTCTime posix
 
       enterInt :: (MonadIO m, Integral a) => a -> HTMLT m (m a)
       enterInt n = "input" </ do
@@ -282,9 +296,8 @@ main = do
       row ("getPreferredLanguage", Glo.getPreferredLanguage)
       row ("getLocaleName"       , Glo.getLocaleName       )
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
-    now <- liftIO getCurrentTime
     "form" </ mdo
-      t <- enterRead now
+      t <- enterDateTime
       action "isDayLightSavingsTime" $ do
         res <- t >>= Glo.isDayLightSavingsTime
         runHTMLT result $ setHTML $ show res
@@ -307,7 +320,7 @@ main = do
       result <- "p" <-/ text "Result here"
       return ()
     "form" </ mdo
-      t <- enterRead now
+      t <- enterDateTime
       action "dateToString" $ do
         res <- t >>= \v -> Glo.dateToString v def
         runHTMLT result $ setHTML $ show res
