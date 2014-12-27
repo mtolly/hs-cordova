@@ -89,7 +89,7 @@ setHTML :: (MonadIO m) => String -> HTMLT m ()
 setHTML s = getElement >>= liftIO . js_setHTML (toJSString s)
 
 foreign import javascript unsafe
-  "$2.innerHTML += $1;"
+  "$2.insertAdjacentHTML('beforeend', $1);"
   appendHTML :: JSString -> Element -> IO ()
 
 foreign import javascript unsafe
