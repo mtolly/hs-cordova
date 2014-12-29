@@ -8,7 +8,7 @@ module HTMLT
 , runHTMLT
 , inside
 , getElement
-, text
+, html
 , (</)
 , (<-/)
 , ($=)
@@ -53,8 +53,8 @@ inside elt act = HTMLT $ withReaderT (const elt) $ unHTMLT act
 getElement :: (Monad m) => HTMLT m Element
 getElement = HTMLT ask
 
-text :: (MonadIO m) => T.Text -> HTMLT m ()
-text s = getElement >>= liftIO . appendHTML (toJSString s)
+html :: (MonadIO m) => T.Text -> HTMLT m ()
+html s = getElement >>= liftIO . appendHTML (toJSString s)
 
 (</) :: (MonadIO m) => T.Text -> HTMLT m a -> HTMLT m a
 tag </ sub = do
@@ -118,7 +118,7 @@ style :: (MonadIO m) => T.Text -> [(T.Text, T.Text)] -> HTMLT m ()
 style ctxt kvs = "style" </ do
   "type" $= "text/css"
   let rules = T.unwords [ k <> ": " <> v <> ";" | (k, v) <- kvs ]
-  text $ ctxt <> " { " <> rules <> " } "
+  html $ ctxt <> " { " <> rules <> " } "
 
 foreign import javascript unsafe
   "$1.checked"

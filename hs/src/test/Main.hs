@@ -44,7 +44,7 @@ main = do
         stopper <- liftIO $ newMVar Nothing
         button $ do
           btn <- getElement
-          text "Start listening"
+          html "Start listening"
           onclick $ takeMVar stopper >>= \case
             Nothing -> do
               newStopper <- starter
@@ -64,7 +64,7 @@ main = do
         "value" $= s
 
       action :: (MonadIO m) => T.Text -> IO () -> HTMLT m ()
-      action s act = button $ text s >> onclick act
+      action s act = button $ html s >> onclick act
 
   let enterStr :: (MonadIO m) => T.Text -> HTMLT m (m T.Text)
       enterStr s = do
@@ -108,7 +108,7 @@ main = do
         let enumTable = zip ([0..] :: [Int]) [minBound .. maxBound]
         forM_ enumTable $ \(i, val) -> "option" </ do
           "value" $= showT i
-          text $ showT val
+          html $ showT val
         sel <- getElement
         return $ do
           str <- runHTMLT sel getValue
@@ -142,11 +142,11 @@ main = do
 
   runHTMLT body $ do
 
-    "h1" </ text "Device"
+    "h1" </ html "Device"
     "table" </ do
       let row (k, v) = "tr" </ do
-            "td" </ text k
-            "td" </ text v
+            "td" </ html k
+            "td" </ html v
       row ("cordova" , showT Dev.cordova )
       row ("model"   , showT Dev.model   )
       row ("platform", showT Dev.platform)
@@ -157,46 +157,46 @@ main = do
           let update = runHTMLT result . setHTML . showT
           action "Update" $ get >>= update
           toggle $ watch update
-          result <- "p" <-/ text "Status here"
+          result <- "p" <-/ html "Status here"
           return ()
 
-    "h1" </ text "Geolocation"
+    "h1" </ html "Geolocation"
     spaceStatus (Geo.getCurrentPosition def) (Geo.watchPosition def)
 
-    "h1" </ text "Device Orientation"
+    "h1" </ html "Device Orientation"
     spaceStatus DO.getCurrentHeading (DO.watchHeading def)
 
-    "h1" </ text "Device Motion"
+    "h1" </ html "Device Motion"
     spaceStatus DM.getCurrentAcceleration (DM.watchAcceleration def)
 
-    "h1" </ text "Vibration"
+    "h1" </ html "Vibration"
     "form" </ do
       t <- enterRead [500, 100, 200]
       action "Vibrate pattern" $ t >>= Vib.vibrate
     action "Vibrate cancel" Vib.vibrateCancel
 
-    "h1" </ text "Network Information"
+    "h1" </ html "Network Information"
     "form" </ mdo
       action "Update" $ do
         res <- Net.connectionType
         time <- getCurrentTime
         runHTMLT result $ setHTML $ showT time <> ": " <> showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
     "form" </ mdo
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
         runHTMLT result $ setHTML $ "Offline at: " <> showT time
-      result <- "p" <-/ text "Offline at:"
+      result <- "p" <-/ html "Offline at:"
       return ()
     "form" </ mdo
       toggle $ Net.onlineEvent $ do
         time <- getCurrentTime
         runHTMLT result $ setHTML $ "Online at: " <> showT time
-      result <- "p" <-/ text "Online at:"
+      result <- "p" <-/ html "Online at:"
       return ()
 
-    "h1" </ text "Status Bar"
+    "h1" </ html "Status Bar"
     action "Overlay web view" $ Bar.overlaysWebView True
     action "Don't overlay web view" $ Bar.overlaysWebView False
     action "Style: default" Bar.styleDefault
@@ -206,12 +206,12 @@ main = do
     "form" </ do
       txt <- textBox "red"
       button $ do
-        text "Set background color by name"
+        html "Set background color by name"
         onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByName
     "form" </ do
       txt <- textBox "#ff00ff"
       button $ do
-        text "Set background color by hex string"
+        html "Set background color by hex string"
         onclick $ runHTMLT txt getValue >>= Bar.backgroundColorByHexString
     "form" </ mdo
       let update = do
@@ -219,22 +219,22 @@ main = do
             runHTMLT result $ setHTML $ "Visible: " <> showT b
       action "Hide" $ Bar.hideBar >> update
       action "Show" $ Bar.showBar >> update
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
 
-    "h1" </ text "Battery"
+    "h1" </ html "Battery"
     let batteryToggle kind batf = "form" </ mdo
           toggle $ batf $ \status -> do
             time <- getCurrentTime
             runHTMLT result $ setHTML $
               kind <> " at " <> showT time <> ": " <> showT status
-          result <- "p" <-/ text $ kind <> " here"
+          result <- "p" <-/ html $ kind <> " here"
           return ()
     batteryToggle "Status" Bat.onStatus
     batteryToggle "Critical status" Bat.onCritical
     batteryToggle "Low status" Bat.onLow
 
-    "h1" </ text "Camera"
+    "h1" </ html "Camera"
     "form" </ mdo
       stype <- enterEnum
       dtype <- enterEnum
@@ -255,20 +255,20 @@ main = do
               -- the above should probably have a MIME type in between : and ;
               _           -> url
             runHTMLT stamp $ setHTML $ showT time
-      stamp <- "p" <-/ text "Time here"
+      stamp <- "p" <-/ html "Time here"
       img <- "img" <-/ "width" $= "300"
-      err <- "p" <-/ text "Error here"
+      err <- "p" <-/ html "Error here"
       return ()
     "form" </ mdo
       action "Cleanup" $ do
         res <- Cam.cleanup
         time <- getCurrentTime
         runHTMLT result $ setHTML $ showT res <> " at " <> showT time
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
 
-    "h1" </ text "Dialogs"
-    buttonPushed <- "p" <-/ text "Button here"
+    "h1" </ html "Dialogs"
+    buttonPushed <- "p" <-/ html "Button here"
     let push :: (Show a) => a -> IO ()
         push i = do
           time <- getCurrentTime
@@ -293,12 +293,12 @@ main = do
       t1 <- enterInt 2
       action "Beep" $ t1 >>= Dia.beep
 
-    "h1" </ text "Globalization"
+    "h1" </ html "Globalization"
     "table" </ do
       let row (k, act) = "tr" </ do
-            "td" </ text k
+            "td" </ html k
             res <- liftIO act
-            "td" </ text $ showT res
+            "td" </ html $ showT res
       row ("getPreferredLanguage", Glo.getPreferredLanguage)
       row ("getLocaleName"       , Glo.getLocaleName       )
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
@@ -307,7 +307,7 @@ main = do
       action "isDayLightSavingsTime" $ do
         res <- t >>= Glo.isDayLightSavingsTime
         runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
     "form" </ mdo
       t1 <- enterStr "123.45"
@@ -315,7 +315,7 @@ main = do
       action "stringToNumber" $ do
         res <- join $ liftM2 Glo.stringToNumber t1 $ liftM (Glo.NumStrOptions . Just) t2
         runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
     "form" </ mdo
       t1 <- enterFrac 12345.6789
@@ -323,21 +323,21 @@ main = do
       action "numberToString" $ do
         res <- join $ liftM2 Glo.numberToString t1 $ liftM (Glo.NumStrOptions . Just) t2
         runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
     "form" </ mdo
       t <- enterDateTime
       action "dateToString" $ do
         res <- t >>= \v -> Glo.dateToString v def
         runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
     "form" </ mdo
       t <- enterStr "12/26/14, 9:09 PM"
       action "stringToDate" $ do
         res <- t >>= \v -> Glo.stringToDate v def
         runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ text "Result here"
+      result <- "p" <-/ html "Result here"
       return ()
 
 showT :: (Show a) => a -> T.Text
