@@ -28,6 +28,7 @@ Completed functionality:
   * [`org.apache.cordova.device-orientation`](http://plugins.cordova.io/#/package/org.apache.cordova.device-orientation)
   * [`org.apache.cordova.device-motion`](http://plugins.cordova.io/#/package/org.apache.cordova.device-motion)
   * [`org.apache.cordova.file`](http://plugins.cordova.io/#/package/org.apache.cordova.file) (needs testing)
+  * [`org.apache.cordova.globalization`](http://plugins.cordova.io/#/package/org.apache.cordova.globalization) (needs testing)
 
 Tips for using the bindings:
 
