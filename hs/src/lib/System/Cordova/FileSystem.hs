@@ -1,4 +1,15 @@
 
+{- |
+
+This module is highly unfinished and may not be entirely correct.
+Information was gathered from
+<http://www.html5rocks.com/en/tutorials/file/filesystem/>,
+<http://plugins.cordova.io/#/package/org.apache.cordova.file>,
+and my best efforts at testing with the iOS emulator + Safari console.
+<https://github.com/mtolly/hs-cordova/issues File an issue> if there is missing
+functionality that you need.
+
+-}
 {-# LANGUAGE JavaScriptFFI #-}
 module System.Cordova.FileSystem
 ( applicationDirectory, applicationStorageDirectory, dataDirectory, cacheDirectory, externalApplicationStorageDirectory, externalDataDirectory, externalCacheDirectory, externalRootDirectory, tempDirectory, syncedDataDirectory, documentsDirectory, sharedDirectory
@@ -446,6 +457,7 @@ readEntries arg0 =  do
   res <- js_readEntries arg0'
   RInternal.fromJSEitherRef res
 
+-- | Uses "createReader" and "readEntries" to get all entries at once.
 readAllEntries :: Entry Dir -> IO (Either FileError [Entry ()])
 readAllEntries dir = do
   r <- createReader dir
@@ -496,11 +508,11 @@ readAsDataURL arg0 =  do
   RInternal.fromJSEitherRef res
 
 
--- TODO: better implementation
 readAsBinary :: FileObject -> IO (Either FileError B8.ByteString)
 readAsBinary = fmap (fmap encodeLatin1) . readAsBinaryString
   where encodeLatin1 = B8.pack . T.unpack
-        -- Why doesn't Data.Text.Encoding have a better impl of this?
+        -- TODO: better implementation
+        -- Why doesn't Data.Text.Encoding have this?
 
 data FileWriter_
 type FileWriter = JSRef FileWriter_
@@ -530,6 +542,7 @@ type Blob = JSRef Blob_
 foreign import javascript unsafe
   "new Blob([$2], {type: $1})"
   js_newBlob :: RTypes.JSRef (T.Text) -> RTypes.JSRef (T.Text) -> IO (RTypes.JSRef (Blob))
+-- | First argument is the Blob's MIME type.
 newBlob :: T.Text -> T.Text ->  (Blob)
 newBlob arg0 arg1 = RUnsafe.unsafePerformIO $ do
   arg0' <- RMarshal.toJSRef arg0

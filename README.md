@@ -27,6 +27,7 @@ Completed functionality:
   * [`org.apache.cordova.battery-status`](http://plugins.cordova.io/#/package/org.apache.cordova.battery-status)
   * [`org.apache.cordova.device-orientation`](http://plugins.cordova.io/#/package/org.apache.cordova.device-orientation)
   * [`org.apache.cordova.device-motion`](http://plugins.cordova.io/#/package/org.apache.cordova.device-motion)
+  * [`org.apache.cordova.file`](http://plugins.cordova.io/#/package/org.apache.cordova.file) (needs testing)
 
 Tips for using the bindings:
 
