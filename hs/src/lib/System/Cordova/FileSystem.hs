@@ -21,13 +21,15 @@ module System.Cordova.FileSystem
 , FileObject, file
 , readAsText, readAsBinaryString, readAsDataURL, readAsBinary
 , FileWriter, Blob
-, createWriter, seek, textBlob, writeBlob
+, createWriter, seek, newBlob, textBlob, binaryBlob, writeBlob
 ) where
 
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified GHCJS.Types as RTypes
 import qualified GHCJS.Marshal as RMarshal
 import qualified GHCJS.Foreign as RForeign
@@ -40,96 +42,96 @@ import qualified Data.Text as RText
 
 foreign import javascript unsafe
   "cordova.file.applicationDirectory"
-  js_applicationDirectory ::  IO (RTypes.JSRef (Maybe String))
-applicationDirectory ::   (Maybe String)
+  js_applicationDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+applicationDirectory ::   (Maybe T.Text)
 applicationDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_applicationDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.applicationStorageDirectory"
-  js_applicationStorageDirectory ::  IO (RTypes.JSRef (Maybe String))
-applicationStorageDirectory ::   (Maybe String)
+  js_applicationStorageDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+applicationStorageDirectory ::   (Maybe T.Text)
 applicationStorageDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_applicationStorageDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.dataDirectory"
-  js_dataDirectory ::  IO (RTypes.JSRef (Maybe String))
-dataDirectory ::   (Maybe String)
+  js_dataDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+dataDirectory ::   (Maybe T.Text)
 dataDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_dataDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.cacheDirectory"
-  js_cacheDirectory ::  IO (RTypes.JSRef (Maybe String))
-cacheDirectory ::   (Maybe String)
+  js_cacheDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+cacheDirectory ::   (Maybe T.Text)
 cacheDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_cacheDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.externalApplicationStorageDirectory"
-  js_externalApplicationStorageDirectory ::  IO (RTypes.JSRef (Maybe String))
-externalApplicationStorageDirectory ::   (Maybe String)
+  js_externalApplicationStorageDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+externalApplicationStorageDirectory ::   (Maybe T.Text)
 externalApplicationStorageDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_externalApplicationStorageDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.externalDataDirectory"
-  js_externalDataDirectory ::  IO (RTypes.JSRef (Maybe String))
-externalDataDirectory ::   (Maybe String)
+  js_externalDataDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+externalDataDirectory ::   (Maybe T.Text)
 externalDataDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_externalDataDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.externalCacheDirectory"
-  js_externalCacheDirectory ::  IO (RTypes.JSRef (Maybe String))
-externalCacheDirectory ::   (Maybe String)
+  js_externalCacheDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+externalCacheDirectory ::   (Maybe T.Text)
 externalCacheDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_externalCacheDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.externalRootDirectory"
-  js_externalRootDirectory ::  IO (RTypes.JSRef (Maybe String))
-externalRootDirectory ::   (Maybe String)
+  js_externalRootDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+externalRootDirectory ::   (Maybe T.Text)
 externalRootDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_externalRootDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.tempDirectory"
-  js_tempDirectory ::  IO (RTypes.JSRef (Maybe String))
-tempDirectory ::   (Maybe String)
+  js_tempDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+tempDirectory ::   (Maybe T.Text)
 tempDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_tempDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.syncedDataDirectory"
-  js_syncedDataDirectory ::  IO (RTypes.JSRef (Maybe String))
-syncedDataDirectory ::   (Maybe String)
+  js_syncedDataDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+syncedDataDirectory ::   (Maybe T.Text)
 syncedDataDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_syncedDataDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.documentsDirectory"
-  js_documentsDirectory ::  IO (RTypes.JSRef (Maybe String))
-documentsDirectory ::   (Maybe String)
+  js_documentsDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+documentsDirectory ::   (Maybe T.Text)
 documentsDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_documentsDirectory 
   RInternal.fromJSRef' res
 
 foreign import javascript unsafe
   "cordova.file.sharedDirectory"
-  js_sharedDirectory ::  IO (RTypes.JSRef (Maybe String))
-sharedDirectory ::   (Maybe String)
+  js_sharedDirectory ::  IO (RTypes.JSRef (Maybe T.Text))
+sharedDirectory ::   (Maybe T.Text)
 sharedDirectory  = RUnsafe.unsafePerformIO $ do
   res <- js_sharedDirectory 
   RInternal.fromJSRef' res
@@ -259,16 +261,16 @@ name arg0 = RUnsafe.unsafePerformIO $ do
   RInternal.fromJSRef' res
 foreign import javascript unsafe
   "$1.toURL()"
-  js_toURL :: RTypes.JSRef (Entry a) -> IO (RTypes.JSRef (String))
-toURL :: Entry a ->  (String)
+  js_toURL :: RTypes.JSRef (Entry a) -> IO (RTypes.JSRef (T.Text))
+toURL :: Entry a ->  (T.Text)
 toURL arg0 = RUnsafe.unsafePerformIO $ do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_toURL arg0'
   RInternal.fromJSRef' res
 foreign import javascript unsafe
   "$1.toInternalURL()"
-  js_toInternalURL :: RTypes.JSRef (Entry a) -> IO (RTypes.JSRef (String))
-toInternalURL :: Entry a ->  (String)
+  js_toInternalURL :: RTypes.JSRef (Entry a) -> IO (RTypes.JSRef (T.Text))
+toInternalURL :: Entry a ->  (T.Text)
 toInternalURL arg0 = RUnsafe.unsafePerformIO $ do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_toInternalURL arg0'
@@ -381,8 +383,8 @@ getParent arg0 =  do
 
 foreign import javascript interruptible
   "resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));"
-  js_resolveLocalFileSystemURL :: RTypes.JSRef (String) -> IO (RInternal.JSEitherRef FileError (Entry ()))
-resolveLocalFileSystemURL :: String -> IO (Either FileError (Entry ()))
+  js_resolveLocalFileSystemURL :: RTypes.JSRef (T.Text) -> IO (RInternal.JSEitherRef FileError (Entry ()))
+resolveLocalFileSystemURL :: T.Text -> IO (Either FileError (Entry ()))
 resolveLocalFileSystemURL arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_resolveLocalFileSystemURL arg0'
@@ -468,8 +470,8 @@ file arg0 =  do
 
 foreign import javascript interruptible
   "hs_readFile('readAsText', $1, $c);"
-  js_readAsText :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
-readAsText :: FileObject -> IO (Either FileError String)
+  js_readAsText :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError T.Text)
+readAsText :: FileObject -> IO (Either FileError T.Text)
 readAsText arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsText arg0'
@@ -477,8 +479,8 @@ readAsText arg0 =  do
 
 foreign import javascript interruptible
   "hs_readFile('readAsBinaryString', $1, $c);"
-  js_readAsBinaryString :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
-readAsBinaryString :: FileObject -> IO (Either FileError String)
+  js_readAsBinaryString :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError T.Text)
+readAsBinaryString :: FileObject -> IO (Either FileError T.Text)
 readAsBinaryString arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsBinaryString arg0'
@@ -486,8 +488,8 @@ readAsBinaryString arg0 =  do
 
 foreign import javascript interruptible
   "hs_readFile('readAsDataURL', $1, $c);"
-  js_readAsDataURL :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError String)
-readAsDataURL :: FileObject -> IO (Either FileError String)
+  js_readAsDataURL :: RTypes.JSRef (FileObject) -> IO (RInternal.JSEitherRef FileError T.Text)
+readAsDataURL :: FileObject -> IO (Either FileError T.Text)
 readAsDataURL arg0 =  do
   arg0' <- RMarshal.toJSRef arg0
   res <- js_readAsDataURL arg0'
@@ -496,7 +498,9 @@ readAsDataURL arg0 =  do
 
 -- TODO: better implementation
 readAsBinary :: FileObject -> IO (Either FileError B8.ByteString)
-readAsBinary = fmap (fmap B8.pack) . readAsBinaryString
+readAsBinary = fmap (fmap encodeLatin1) . readAsBinaryString
+  where encodeLatin1 = B8.pack . T.unpack
+        -- Why doesn't Data.Text.Encoding have a better impl of this?
 
 data FileWriter_
 type FileWriter = JSRef FileWriter_
@@ -524,13 +528,20 @@ data Blob_
 type Blob = JSRef Blob_
 
 foreign import javascript unsafe
-  "new Blob([$1], {type: \"text/plain\"})"
-  js_textBlob :: RTypes.JSRef (String) -> IO (RTypes.JSRef (Blob))
-textBlob :: String ->  (Blob)
-textBlob arg0 = RUnsafe.unsafePerformIO $ do
+  "new Blob([$2], {type: $1})"
+  js_newBlob :: RTypes.JSRef (T.Text) -> RTypes.JSRef (T.Text) -> IO (RTypes.JSRef (Blob))
+newBlob :: T.Text -> T.Text ->  (Blob)
+newBlob arg0 arg1 = RUnsafe.unsafePerformIO $ do
   arg0' <- RMarshal.toJSRef arg0
-  res <- js_textBlob arg0'
+  arg1' <- RMarshal.toJSRef arg1
+  res <- js_newBlob arg0' arg1'
   RInternal.fromJSRef' res
+
+textBlob :: T.Text -> Blob
+textBlob = newBlob (T.pack "text/plain")
+
+binaryBlob :: B8.ByteString -> Blob
+binaryBlob = newBlob (T.pack "application/octet-stream") . TE.decodeLatin1
 
 foreign import javascript interruptible
   "hs_writeBlob($1, $2, $c);"

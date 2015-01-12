@@ -37,17 +37,19 @@ module System.Cordova.FileSystem
 , FileObject, file
 , readAsText, readAsBinaryString, readAsDataURL, readAsBinary
 , FileWriter, Blob
-, createWriter, seek, textBlob, writeBlob
+, createWriter, seek, newBlob, textBlob, binaryBlob, writeBlob
 ) where
 
 import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 <%= hsImports %>
 
 <% dirs.each do |dir| %>
-<%= jsImport("cordova.file.#{dir}", [], 'Maybe String', isIO: false) %>
+<%= jsImport("cordova.file.#{dir}", [], 'Maybe T.Text', isIO: false) %>
 <% end %>
 
 <%= makeEnum('FileErrorCode', %w{
@@ -94,8 +96,8 @@ type Entry a = JSRef (Entry_ a)
 
 <%= jsImport("$1.fullPath"       , ['Entry a'], 'FilePath', isIO: false) %>
 <%= jsImport("$1.name"           , ['Entry a'], 'FilePath', isIO: false) %>
-<%= jsImport("$1.toURL()"        , ['Entry a'], 'String'  , isIO: false) %>
-<%= jsImport("$1.toInternalURL()", ['Entry a'], 'String'  , isIO: false) %>
+<%= jsImport("$1.toURL()"        , ['Entry a'], 'T.Text'  , isIO: false) %>
+<%= jsImport("$1.toInternalURL()", ['Entry a'], 'T.Text'  , isIO: false) %>
 
 <%= jsImport('$1.isFile'     , ['Entry a'], 'Bool', isIO: false) %>
 <%= jsImport('$1.isDirectory', ['Entry a'], 'Bool', isIO: false) %>
@@ -144,7 +146,7 @@ genericEntry = castRef
 
 <%= jsImport(
   'resolveLocalFileSystemURL($1, hs_good($c), hs_error($c));',
-  ['String'], 'Either FileError (Entry ())',
+  ['T.Text'], 'Either FileError (Entry ())',
 ) %>
 
 <%= makeEnum('GetFlags', [
@@ -191,12 +193,14 @@ type FileObject = JSRef FileObject_
 ) %>
 
 <% %w{readAsText readAsBinaryString readAsDataURL}.each do |f| %>
-<%= jsImport("hs_readFile('#{f}', $1, $c);", ['FileObject'], 'Either FileError String') %>
+<%= jsImport("hs_readFile('#{f}', $1, $c);", ['FileObject'], 'Either FileError T.Text') %>
 <% end %>
 
 -- TODO: better implementation
 readAsBinary :: FileObject -> IO (Either FileError B8.ByteString)
-readAsBinary = fmap (fmap B8.pack) . readAsBinaryString
+readAsBinary = fmap (fmap encodeLatin1) . readAsBinaryString
+  where encodeLatin1 = B8.pack . T.unpack
+        -- Why doesn't Data.Text.Encoding have a better impl of this?
 
 data FileWriter_
 type FileWriter = JSRef FileWriter_
@@ -212,9 +216,15 @@ data Blob_
 type Blob = JSRef Blob_
 
 <%= jsImport(
-  'new Blob([$1], {type: "text/plain"})',
-  ['String'], 'Blob', hsName: 'textBlob', isIO: false,
+  'new Blob([$2], {type: $1})',
+  ['T.Text', 'T.Text'], 'Blob', hsName: 'newBlob', isIO: false,
 ) %>
+
+textBlob :: T.Text -> Blob
+textBlob = newBlob (T.pack "text/plain")
+
+binaryBlob :: B8.ByteString -> Blob
+binaryBlob = newBlob (T.pack "application/octet-stream") . TE.decodeLatin1
 
 <%= jsImport(
   'hs_writeBlob($1, $2, $c);', ['Blob', 'FileWriter'], 'Either FileError ()',
