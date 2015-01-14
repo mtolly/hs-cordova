@@ -189,12 +189,12 @@ instance  RMarshal.ToJSRef (DateNameOptions) where
           Nothing -> return ()
           Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
-    _setJust "nameType" nameType
+    _setJust "type" nameType
     _setJust "item" item
     return obj
 instance  RMarshal.FromJSRef (DateNameOptions) where
   fromJSRef obj = do
-    _x0 <- RInternal.fromProp (RText.pack "nameType") obj
+    _x0 <- RInternal.fromProp (RText.pack "type") obj
     _x1 <- RInternal.fromProp (RText.pack "item") obj
     return $ DateNameOptions RApp.<$> _x0 RApp.<*> _x1
 
@@ -277,7 +277,7 @@ instance  RMarshal.ToJSRef (NumberPattern) where
           Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
         _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
     _set "pattern" nPattern
-    _set "code" nSymbol
+    _set "symbol" nSymbol
     _set "fraction" nFraction
     _set "rounding" nRounding
     _set "positive" nPositive
@@ -288,7 +288,7 @@ instance  RMarshal.ToJSRef (NumberPattern) where
 instance  RMarshal.FromJSRef (NumberPattern) where
   fromJSRef obj = do
     _x0 <- RInternal.fromProp (RText.pack "pattern") obj
-    _x1 <- RInternal.fromProp (RText.pack "code") obj
+    _x1 <- RInternal.fromProp (RText.pack "symbol") obj
     _x2 <- RInternal.fromProp (RText.pack "fraction") obj
     _x3 <- RInternal.fromProp (RText.pack "rounding") obj
     _x4 <- RInternal.fromProp (RText.pack "positive") obj

@@ -31,6 +31,108 @@ foreign import javascript unsafe
   "$1.valueAsNumber"
   valueAsNumber :: Element -> IO Double
 
+toggle :: (MonadIO m) => IO (IO ()) -> HTMLT m ()
+toggle starter = do
+  stopper <- liftIO $ newMVar Nothing
+  button $ do
+    btn <- getElement
+    html "Start listening"
+    onclick $ takeMVar stopper >>= \case
+      Nothing -> do
+        newStopper <- starter
+        runHTMLT btn $ setHTML "Stop listening"
+        putMVar stopper $ Just newStopper
+      Just oldStopper -> do
+        oldStopper
+        runHTMLT btn $ setHTML "Start listening"
+        putMVar stopper Nothing
+
+button :: (MonadIO m) => HTMLT m a -> HTMLT m a
+button act = "button" </ ("type" $= "button") >> act
+
+textBox :: (MonadIO m) => T.Text -> HTMLT m Element
+textBox s = "input" <-/ do
+  "type" $= "text"
+  "value" $= s
+
+action :: (MonadIO m) => T.Text -> IO () -> HTMLT m ()
+action s act = button $ html s >> onclick act
+
+actionShow :: (Show a) => T.Text -> IO a -> HTMLT IO ()
+actionShow title act = mdo
+  action title $ do
+    res <- act
+    runHTMLT result $ setHTML $ showT res
+  result <- "p" <-/ html "Result here"
+  return ()
+
+showT :: (Show a) => a -> T.Text
+showT = T.pack . show
+
+readT :: (Read a) => T.Text -> a
+readT = read . T.unpack
+
+enterStr :: (MonadIO m) => T.Text -> HTMLT m (m T.Text)
+enterStr s = do
+  elt <- textBox s
+  return $ runHTMLT elt getValue
+
+enterDateTime :: (MonadIO m) => HTMLT m (m UTCTime)
+enterDateTime = do
+  d <- "input" <-/ "type" $= "date"
+  t <- "input" <-/ "type" $= "time"
+  return $ do
+    milli <- liftIO $ liftM2 (+) (valueAsNumber d) (valueAsNumber t)
+    let posix = realToFrac $ milli / 1000
+    return $ posixSecondsToUTCTime posix
+
+enterInt :: (MonadIO m, Integral a) => a -> HTMLT m (m a)
+enterInt n = "input" </ do
+  "type" $= "number"
+  "value" $= showT $ toInteger n
+  elt <- getElement
+  return $ do
+    x <- liftM readT $ runHTMLT elt getValue
+    return $ fromInteger x
+
+enterFrac :: (MonadIO m, RealFrac a) => a -> HTMLT m (m a)
+enterFrac n = "input" </ do
+  "type" $= "number"
+  "value" $= showT (realToFrac n :: Double)
+  elt <- getElement
+  return $ do
+    x <- liftM readT $ runHTMLT elt getValue
+    return $ realToFrac (x :: Double)
+
+enterRead :: (MonadIO m, Show a, Read a) => a -> HTMLT m (m a)
+enterRead x = do
+  f <- enterStr $ showT x
+  return $ liftM readT f
+
+enterEnum :: (MonadIO m, Enum a, Bounded a, Show a) => HTMLT m (m a)
+enterEnum = "select" </ do
+  let enumTable = zip ([0..] :: [Int]) [minBound .. maxBound]
+  forM_ enumTable $ \(i, val) -> "option" </ do
+    "value" $= showT i
+    html $ showT val
+  sel <- getElement
+  return $ do
+    str <- runHTMLT sel getValue
+    return $ fromJust $ lookup (readT str) enumTable
+
+enterMaybe :: (MonadIO m) =>
+  HTMLT m (m a) -> HTMLT m (m (Maybe a))
+enterMaybe input = "p" </ do
+  box <- "input" <-/ do
+    "type" $= "checkbox"
+    setChecked True
+  get <- input
+  return $ do
+    chk <- runHTMLT box checked
+    if chk
+      then liftM Just get
+      else return Nothing
+
 main :: IO ()
 main = do
   waitDeviceReady
@@ -38,94 +140,6 @@ main = do
   Bar.overlaysWebView False
   Bar.styleBlackOpaque
   Bar.backgroundColorByName "black"
-
-  let toggle :: (MonadIO m) => IO (IO ()) -> HTMLT m ()
-      toggle starter = do
-        stopper <- liftIO $ newMVar Nothing
-        button $ do
-          btn <- getElement
-          html "Start listening"
-          onclick $ takeMVar stopper >>= \case
-            Nothing -> do
-              newStopper <- starter
-              runHTMLT btn $ setHTML "Stop listening"
-              putMVar stopper $ Just newStopper
-            Just oldStopper -> do
-              oldStopper
-              runHTMLT btn $ setHTML "Start listening"
-              putMVar stopper Nothing
-
-      button :: (MonadIO m) => HTMLT m a -> HTMLT m a
-      button act = "button" </ ("type" $= "button") >> act
-
-      textBox :: (MonadIO m) => T.Text -> HTMLT m Element
-      textBox s = "input" <-/ do
-        "type" $= "text"
-        "value" $= s
-
-      action :: (MonadIO m) => T.Text -> IO () -> HTMLT m ()
-      action s act = button $ html s >> onclick act
-
-  let enterStr :: (MonadIO m) => T.Text -> HTMLT m (m T.Text)
-      enterStr s = do
-        elt <- textBox s
-        return $ runHTMLT elt getValue
-
-      enterDateTime :: (MonadIO m) => HTMLT m (m UTCTime)
-      enterDateTime = do
-        d <- "input" <-/ "type" $= "date"
-        t <- "input" <-/ "type" $= "time"
-        return $ do
-          milli <- liftIO $ liftM2 (+) (valueAsNumber d) (valueAsNumber t)
-          let posix = realToFrac $ milli / 1000
-          return $ posixSecondsToUTCTime posix
-
-      enterInt :: (MonadIO m, Integral a) => a -> HTMLT m (m a)
-      enterInt n = "input" </ do
-        "type" $= "number"
-        "value" $= showT $ toInteger n
-        elt <- getElement
-        return $ do
-          x <- liftM readT $ runHTMLT elt getValue
-          return $ fromInteger x
-
-      enterFrac :: (MonadIO m, RealFrac a) => a -> HTMLT m (m a)
-      enterFrac n = "input" </ do
-        "type" $= "number"
-        "value" $= showT (realToFrac n :: Double)
-        elt <- getElement
-        return $ do
-          x <- liftM readT $ runHTMLT elt getValue
-          return $ realToFrac (x :: Double)
-
-      enterRead :: (MonadIO m, Show a, Read a) => a -> HTMLT m (m a)
-      enterRead x = do
-        f <- enterStr $ showT x
-        return $ liftM readT f
-
-      enterEnum :: (MonadIO m, Enum a, Bounded a, Show a) => HTMLT m (m a)
-      enterEnum = "select" </ do
-        let enumTable = zip ([0..] :: [Int]) [minBound .. maxBound]
-        forM_ enumTable $ \(i, val) -> "option" </ do
-          "value" $= showT i
-          html $ showT val
-        sel <- getElement
-        return $ do
-          str <- runHTMLT sel getValue
-          return $ fromJust $ lookup (readT str) enumTable
-
-      enterMaybe :: (MonadIO m) =>
-        HTMLT m (m a) -> HTMLT m (m (Maybe a))
-      enterMaybe input = "p" </ do
-        box <- "input" <-/ do
-          "type" $= "checkbox"
-          setChecked True
-        get <- input
-        return $ do
-          chk <- runHTMLT box checked
-          if chk
-            then liftM Just get
-            else return Nothing
 
   runHTMLT headElement $ do
     style "body"
@@ -176,13 +190,11 @@ main = do
     action "Vibrate cancel" Vib.vibrateCancel
 
     "h1" </ html "Network Information"
-    "form" </ mdo
-      action "Update" $ do
+    "form" </ do
+      actionShow "Update" $ do
         res <- Net.connectionType
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ showT time <> ": " <> showT res
-      result <- "p" <-/ html "Result here"
-      return ()
+        return $ showT time <> ": " <> showT res
     "form" </ mdo
       toggle $ Net.offlineEvent $ do
         time <- getCurrentTime
@@ -259,13 +271,11 @@ main = do
       img <- "img" <-/ "width" $= "300"
       err <- "p" <-/ html "Error here"
       return ()
-    "form" </ mdo
-      action "Cleanup" $ do
+    "form" </ do
+      actionShow "Cleanup" $ do
         res <- Cam.cleanup
         time <- getCurrentTime
-        runHTMLT result $ setHTML $ showT res <> " at " <> showT time
-      result <- "p" <-/ html "Result here"
-      return ()
+        return $ showT res <> " at " <> showT time
 
     "h1" </ html "Dialogs"
     buttonPushed <- "p" <-/ html "Button here"
@@ -302,46 +312,44 @@ main = do
       row ("getPreferredLanguage", Glo.getPreferredLanguage)
       row ("getLocaleName"       , Glo.getLocaleName       )
       row ("getFirstDayOfWeek"   , Glo.getFirstDayOfWeek   )
-    "form" </ mdo
+    "form" </ do
       t <- enterDateTime
-      action "isDayLightSavingsTime" $ do
-        res <- t >>= Glo.isDayLightSavingsTime
-        runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ html "Result here"
-      return ()
-    "form" </ mdo
+      actionShow "isDayLightSavingsTime" $ t >>= Glo.isDayLightSavingsTime
+    "form" </ do
       t1 <- enterStr "123.45"
       t2 <- enterEnum
-      action "stringToNumber" $ do
-        res <- join $ liftM2 Glo.stringToNumber t1 $ liftM (Glo.NumStrOptions . Just) t2
-        runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ html "Result here"
-      return ()
-    "form" </ mdo
+      actionShow "stringToNumber" $
+        join $ liftM2 Glo.stringToNumber t1 $ liftM (Glo.NumStrOptions . Just) t2
+    "form" </ do
       t1 <- enterFrac 12345.6789
       t2 <- enterEnum
-      action "numberToString" $ do
-        res <- join $ liftM2 Glo.numberToString t1 $ liftM (Glo.NumStrOptions . Just) t2
-        runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ html "Result here"
-      return ()
-    "form" </ mdo
+      actionShow "numberToString" $
+        join $ liftM2 Glo.numberToString t1 $ liftM (Glo.NumStrOptions . Just) t2
+    "form" </ do
       t <- enterDateTime
-      action "dateToString" $ do
-        res <- t >>= \v -> Glo.dateToString v def
-        runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ html "Result here"
-      return ()
-    "form" </ mdo
+      actionShow "dateToString" $ t >>= \v -> Glo.dateToString v def
+    "form" </ do
       t <- enterStr "12/26/14, 9:09 PM"
-      action "stringToDate" $ do
-        res <- t >>= \v -> Glo.stringToDate v def
-        runHTMLT result $ setHTML $ showT res
-      result <- "p" <-/ html "Result here"
-      return ()
-
-showT :: (Show a) => a -> T.Text
-showT = T.pack . show
-
-readT :: (Read a) => T.Text -> a
-readT = read . T.unpack
+      actionShow "stringToDate" $ t >>= \v -> Glo.stringToDate v def
+    "form" </ do
+      t1 <- enterEnum
+      t2 <- enterEnum
+      let getOptions = do
+            x <- t1
+            y <- t2
+            return $ Glo.DateNameOptions (Just x) (Just y)
+      actionShow "getDateNames" $ getOptions >>= Glo.getDateNames
+    "form" </ do
+      t <- enterStr "USD"
+      actionShow "getCurrencyPattern" $ t >>= Glo.getCurrencyPattern
+    "form" </ do
+      t1 <- enterEnum
+      t2 <- enterEnum
+      let getOptions = do
+            x <- t1
+            y <- t2
+            return $ Glo.DateStrOptions (Just x) (Just y)
+      actionShow "getDatePattern" $ getOptions >>= Glo.getDatePattern
+    "form" </ do
+      t <- fmap (fmap $ Glo.NumStrOptions . Just) enterEnum
+      actionShow "getNumberPattern" $ t >>= Glo.getNumberPattern

@@ -81,7 +81,7 @@ import qualified Data.Text as T
 ]) %>
 
 <%= makeRecord('DateNameOptions', [
-  Field.new('Maybe NameType', 'nameType'),
+  Field.new('Maybe NameType', 'nameType', jsName: 'type'),
   Field.new('Maybe Item', 'item'),
 ]) %>
 
@@ -114,7 +114,7 @@ import qualified Data.Text as T
 
 <%= makeRecord('NumberPattern', [
   Field.new('T.Text', 'nPattern' , jsName: 'pattern'),
-  Field.new('T.Text', 'nSymbol'  , jsName: 'code'),
+  Field.new('T.Text', 'nSymbol'  , jsName: 'symbol'),
   Field.new('Int'   , 'nFraction', jsName: 'fraction'),
   Field.new('Double', 'nRounding', jsName: 'rounding'),
   Field.new('T.Text', 'nPositive', jsName: 'positive'),
