@@ -16,9 +16,7 @@ module System.Cordova.Globalization
 , NumberPattern(..), getNumberPattern
 ) where
 
-import Data.Time.Clock
-import Data.Time.LocalTime
-import Data.Time.Calendar
+import Data.Time
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified GHCJS.Types as RTypes
