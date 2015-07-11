@@ -1,4 +1,3 @@
-
 {-# LANGUAGE JavaScriptFFI #-}
 module System.Cordova.DeviceOrientation
 ( CompassHeading(..)
@@ -12,87 +11,37 @@ import GHCJS.Types
 import GHCJS.Marshal
 import Data.Time.Clock
 import System.Cordova.EventListener
-import qualified GHCJS.Types as RTypes
-import qualified GHCJS.Marshal as RMarshal
-import qualified Data.Default as RDefault
-import qualified GHCJS.Foreign as RForeign
-import qualified System.Cordova.Internal as RInternal
-import qualified Control.Applicative as RApp
-import qualified Data.Text as RText
 
+jsImport "navigator.compass.getCurrentHeading(hs_good($c), hs_error($c));"
+  [t| IO (Either CompassError CompassHeading) |]
 
-foreign import javascript interruptible
-  "navigator.compass.getCurrentHeading(hs_good($c), hs_error($c));"
-  js_getCurrentHeading ::  IO (RInternal.JSEitherRef CompassError CompassHeading)
-getCurrentHeading ::  IO (Either CompassError CompassHeading)
-getCurrentHeading  =  do
-  res <- js_getCurrentHeading 
-  RInternal.fromJSEitherRef res
+jsRecord [d|
+  data CompassHeading = CompassHeading
+    { magneticHeading :: Maybe Double
+    , trueHeading     :: Maybe Double
+    , headingAccuracy :: Maybe Double
+    , timestamp       :: Maybe UTCTime
+    } deriving (Eq, Ord, Show, Read, ToJSRef, FromJSRef)
+  |]
 
-data CompassHeading = CompassHeading
-  { magneticHeading :: Maybe Double
-  , trueHeading :: Maybe Double
-  , headingAccuracy :: Maybe Double
-  , timestamp :: Maybe UTCTime
-  } deriving (Eq, Ord, Show, Read)
-instance  RDefault.Default (CompassHeading) where def = CompassHeading RDefault.def RDefault.def RDefault.def RDefault.def
-instance  RMarshal.FromJSRef (CompassHeading) where
-  fromJSRef obj = do
-    _x0 <- RInternal.fromProp (RText.pack "magneticHeading") obj
-    _x1 <- RInternal.fromProp (RText.pack "trueHeading") obj
-    _x2 <- RInternal.fromProp (RText.pack "headingAccuracy") obj
-    _x3 <- RInternal.fromProp (RText.pack "timestamp") obj
-    return $ CompassHeading RApp.<$> _x0 RApp.<*> _x1 RApp.<*> _x2 RApp.<*> _x3
+jsRecord [d|
+  data CompassError = CompassError
+    { code :: CompassErrorCode
+    } deriving (Eq, Ord, Show, Read, ToJSRef, FromJSRef)
+  |]
 
-newtype CompassError = CompassError
-  { code :: CompassErrorCode
-  } deriving (Eq, Ord, Show, Read)
-instance  RMarshal.ToJSRef (CompassError) where
-  toJSRef opts = do
-    obj <- RForeign.newObj
-    let _setJust s f = case f opts of
-          Nothing -> return ()
-          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
-        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
-    _set "code" code
-    return obj
-instance  RMarshal.FromJSRef (CompassError) where
-  fromJSRef obj = do
-    _x0 <- RInternal.fromProp (RText.pack "code") obj
-    return $ CompassError RApp.<$> _x0
+jsEnum "CompassError." [d|
+  data CompassErrorCode
+    = JS "COMPASS_INTERNAL_ERR"  => CompassInternalErr
+    | JS "COMPASS_NOT_SUPPORTED" => CompassNotSupported
+  |]
 
-data CompassErrorCode
-  = CompassInternalErr
-  | CompassNotSupported
-  deriving (Eq, Ord, Show, Read, Enum, Bounded)
-foreign import javascript unsafe "CompassError.COMPASS_INTERNAL_ERR" _CompassErrorCode_CompassInternalErr :: RTypes.JSRef CompassErrorCode
-foreign import javascript unsafe "CompassError.COMPASS_NOT_SUPPORTED" _CompassErrorCode_CompassNotSupported :: RTypes.JSRef CompassErrorCode
-instance RMarshal.ToJSRef CompassErrorCode where
-  toJSRef CompassInternalErr = return _CompassErrorCode_CompassInternalErr
-  toJSRef CompassNotSupported = return _CompassErrorCode_CompassNotSupported
-instance RMarshal.FromJSRef CompassErrorCode where
-  fromJSRef = RInternal.js_fromEnum
-
-data CompassOptions = CompassOptions
-  { frequency :: Maybe Double
-  , watchFilter :: Maybe Double
-  } deriving (Eq, Ord, Show, Read)
-instance  RDefault.Default (CompassOptions) where def = CompassOptions RDefault.def RDefault.def
-instance  RMarshal.ToJSRef (CompassOptions) where
-  toJSRef opts = do
-    obj <- RForeign.newObj
-    let _setJust s f = case f opts of
-          Nothing -> return ()
-          Just x -> RMarshal.toJSRef x >>= \ref -> RForeign.setProp s ref obj
-        _set s f = RMarshal.toJSRef (f opts) >>= \ref -> RForeign.setProp s ref obj
-    _setJust "frequency" frequency
-    _setJust "filter" watchFilter
-    return obj
-instance  RMarshal.FromJSRef (CompassOptions) where
-  fromJSRef obj = do
-    _x0 <- RInternal.fromProp (RText.pack "frequency") obj
-    _x1 <- RInternal.fromProp (RText.pack "filter") obj
-    return $ CompassOptions RApp.<$> _x0 RApp.<*> _x1
+jsRecord [d|
+  data CompassOptions = CompassOptions
+    { frequency   ::                Maybe Double
+    , watchFilter :: JS "filter" => Maybe Double
+    }
+  |]
 
 foreign import javascript unsafe
   "navigator.compass.watchHeading($2, $3, $1)"

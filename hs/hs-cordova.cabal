@@ -8,33 +8,36 @@ cabal-version:        >= 1.10
 
 library
   exposed-modules:
+    System.Cordova.Binders
     System.Cordova.Base
-    System.Cordova.FileSystem
+    -- System.Cordova.FileSystem
     System.Cordova.Camera
     System.Cordova.Device
-    System.Cordova.Vibration
+    -- System.Cordova.Vibration
     System.Cordova.NetworkInformation
     System.Cordova.Dialogs
-    System.Cordova.Geolocation
-    System.Cordova.StatusBar
+    -- System.Cordova.Geolocation
+    -- System.Cordova.StatusBar
     System.Cordova.BatteryStatus
-    System.Cordova.DeviceOrientation
-    System.Cordova.DeviceMotion
-    System.Cordova.Globalization
+    -- System.Cordova.DeviceOrientation
+    -- System.Cordova.DeviceMotion
+    -- System.Cordova.Globalization
   other-modules:
     System.Cordova.Internal
     System.Cordova.EventListener
   build-depends:
-    base >= 4.7 && < 4.8
+    base >= 4.8 && < 5
     , ghcjs-base == 0.1.0.0
     , ghcjs-prim == 0.1.0.0
     , data-default == 0.5.3
     , time
     , bytestring
     , text
+    , template-haskell
+    , utility-ht
   hs-source-dirs:       src/lib
   default-language:     Haskell2010
-  ghc-options:          -Wall
+  ghc-options:          -Wall -ddump-splices
   js-sources:
     js/hs_util.js
 
@@ -42,7 +45,7 @@ executable hs-cordova-create
   hs-source-dirs:       src/create
   main-is:              Main.hs
   build-depends:
-    base >= 4.7 && < 4.8
+    base >= 4.8 && < 5
     , ghcjs-base == 0.1.0.0
     , hs-cordova == 0.1
   default-language:     Haskell2010
@@ -54,7 +57,7 @@ executable hs-cordova-test
   other-modules:
     HTMLT
   build-depends:
-    base >= 4.7 && < 4.8
+    base >= 4.8 && < 5
     , ghcjs-base == 0.1.0.0
     , hs-cordova == 0.1
     , data-default
