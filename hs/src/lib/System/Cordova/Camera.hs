@@ -86,10 +86,10 @@ jsRecord [d|
 
 jsImport [d|
   getPicture :: CameraOptions -> IO (Either T.Text T.Text)
-  getPicture = jsCode "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
+  getPicture = "navigator.camera.getPicture(hs_good($c), hs_error($c), $1);"
   |]
 
 jsImport [d|
   cleanup :: IO (Either T.Text ())
-  cleanup = jsCode "navigator.camera.cleanup(hs_good($c), hs_error($c));"
+  cleanup = "navigator.camera.cleanup(hs_good($c), hs_error($c));"
   |]

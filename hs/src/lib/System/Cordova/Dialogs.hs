@@ -14,12 +14,12 @@ import GHCJS.Marshal
 
 jsImport [d|
   alert :: T.Text -> Maybe T.Text -> Maybe T.Text -> IO Int
-  alert = jsCode "navigator.notification.alert($1, $c, $2, $3);"
+  alert = "navigator.notification.alert($1, $c, $2, $3);"
   |]
 
 jsImport [d|
   confirm :: T.Text -> Maybe T.Text -> Maybe [T.Text] -> IO Int
-  confirm = jsCode "navigator.notification.confirm($1, $c, $2, $3);"
+  confirm = "navigator.notification.confirm($1, $c, $2, $3);"
   |]
 
 jsRecord [d|
@@ -31,10 +31,10 @@ jsRecord [d|
 
 jsImport [d|
   prompt :: T.Text -> Maybe T.Text -> Maybe [T.Text] -> Maybe T.Text -> IO PromptResult
-  prompt = jsCode "navigator.notification.prompt($1, $c, $2, $3, $4);"
+  prompt = "navigator.notification.prompt($1, $c, $2, $3, $4);"
   |]
 
 jsImport [d|
   beep :: Int -> IO ()
-  beep = jsCode "navigator.notification.beep($1);"
+  beep = "navigator.notification.beep($1);"
   |]

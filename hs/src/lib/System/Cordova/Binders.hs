@@ -17,33 +17,7 @@ import Data.Default
 import Data.List
 import Data.List.HT (partitionMaybe)
 import qualified Data.Text as T
-
-{-
-data Tag = Tag
-  { tagHs :: String
-  , tagJs :: String
-  } deriving (Eq, Ord, Show, Read)
-
-autoTag :: String -> Tag
-autoTag s = Tag s $ map toUpper s
-
-makeEnum :: String -> [Tag] -> String -> Bool -> Q [Dec]
-makeEnum nameStr tags exprPrefix instanceFrom = do
-  let name = mkName nameStr
-      dataDecl = DataD [] name [] [NormalC (mkName $ tagHs tag) [] | tag <- tags]
-        [''Eq, ''Ord, ''Show, ''Read, ''Enum, ''Bounded]
-  jsrefType <- [t| JSRef $(conT name) |]
-  bindings <- forM tags $ \tag -> do
-    bindingName <- newName $ "_" ++ tagHs tag
-    let binding = ForeignD $
-          ImportF JavaScript Unsafe (exprPrefix ++ tagJs tag) bindingName jsrefType
-    return (bindingName, binding)
-  let lambdaCase = lamCaseE $ flip map (zip tags bindings) $ \(tag, (bindingName, _)) ->
-        match (conP (mkName $ tagHs tag) []) (normalB [e| return $(varE bindingName) |]) []
-  instTo <- [d| instance ToJSRef $(conT name) where toJSRef = $lambdaCase |]
-  instFrom <- [d| instance FromJSRef $(conT name) where fromJSRef = js_fromEnum |]
-  return $ [dataDecl] ++ map snd bindings ++ instTo ++ if instanceFrom then instFrom else []
--}
+import Control.Arrow (first)
 
 {- |
 Creates a binding to an enumeration-like sequence of JS values.
@@ -110,11 +84,41 @@ jsEnum prefix qdecs = do
 nameToString :: Name -> String
 nameToString (Name (OccName s) _) = s
 
-jsCode :: String -> a
-jsCode = undefined
-
+{- |
+Imports a JS function with the following features:
+* Wraps all arguments and the result in JSRefs, using ToJSRef/FromJSRef
+* Automatically makes an interruptible binding if the JS expression uses $c
+* Supports a result of "Either e a" via JSEither from the Internal module
+-}
 jsImport :: Q [Dec] -> Q [Dec]
-jsImport = id
+jsImport qdecs = do
+  let invalid = error "jsImport: invalid declaration"
+  qdecs >>= \case
+    [sig@(SigD name fntype), ValD (VarP name') (NormalB (LitE (StringL jsExpr))) []]
+      | name == name'
+      -> do
+        bindingName <- newName $ "_" ++ nameToString name
+        ioType <- [t| IO |]
+        let (argTypes, resultType) = let
+              go = \case
+                AppT (AppT ArrowT t1) t2 -> first (t1 :) $ go t2
+                result -> ([], result)
+              in go fntype
+            arrow t1 t2 = [t| $t1 -> $t2 |]
+            jsArgTypes = map (\t -> [t| JSRef $(return t) |]) argTypes
+            jsResultType = case resultType of
+              AppT io t | io == ioType -> [t| IO (JSRef $(return t)) |]
+              _                        -> [t| JSRef $(return resultType) |]
+        bindingType <- foldr arrow jsResultType jsArgTypes
+        let binding = ForeignD $ ImportF JavaScript bindingMethod
+              jsExpr bindingName bindingType
+            bindingMethod = if "$c" `isInfixOf` jsExpr then Interruptible else Unsafe
+        fmap concat $ sequence
+          [ return [sig]
+          , fmap (: []) $ valD (varP name) (normalB [e| undefined |]) []
+          , return [binding]
+          ]
+    _ -> invalid
 
 class JS (s :: Symbol) where
 

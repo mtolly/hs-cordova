@@ -16,7 +16,7 @@ library
     -- System.Cordova.Vibration
     System.Cordova.NetworkInformation
     System.Cordova.Dialogs
-    -- System.Cordova.Geolocation
+    System.Cordova.Geolocation
     -- System.Cordova.StatusBar
     System.Cordova.BatteryStatus
     -- System.Cordova.DeviceOrientation

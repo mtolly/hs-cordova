@@ -27,7 +27,7 @@ jsEnum "Connection." [d|
 
 jsImport [d|
   connectionType :: IO Connection
-  connectionType = jsCode "navigator.connection.type"
+  connectionType = "navigator.connection.type"
   |]
 
 offlineEvent :: IO () -> IO (IO ())
