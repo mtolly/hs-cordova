@@ -1,9 +1,9 @@
-name:                 hs-cordova
+name:                 cordova
 version:              0.1
 author:               Michael Tolly
 maintainer:           miketolly@gmail.com
 category:             Web
-build-type:           Simple
+build-type:           Custom
 cabal-version:        >= 1.10
 
 library
@@ -25,41 +25,18 @@ library
     System.Cordova.Internal
     System.Cordova.EventListener
   build-depends:
-    base >= 4.7 && < 4.8
+    base >= 4.8 && < 4.9
     , ghcjs-base == 0.1.0.0
     , ghcjs-prim == 0.1.0.0
     , data-default == 0.5.3
     , time
     , bytestring
     , text
-  hs-source-dirs:       src/lib
+  hs-source-dirs:       src
   default-language:     Haskell2010
   ghc-options:          -Wall
   js-sources:
     js/hs_util.js
 
-executable hs-cordova-create
-  hs-source-dirs:       src/create
-  main-is:              Main.hs
-  build-depends:
-    base >= 4.7 && < 4.8
-    , ghcjs-base == 0.1.0.0
-    , hs-cordova == 0.1
-  default-language:     Haskell2010
-  ghc-options:          -Wall
-
-executable hs-cordova-test
-  hs-source-dirs:       src/test
-  main-is:              Main.hs
-  other-modules:
-    HTMLT
-  build-depends:
-    base >= 4.7 && < 4.8
-    , ghcjs-base == 0.1.0.0
-    , hs-cordova == 0.1
-    , data-default
-    , time
-    , transformers >= 0.4.0.0
-    , text
-  default-language:     Haskell2010
-  ghc-options:          -Wall
+custom-setup
+  setup-depends:        base, Cabal, process
